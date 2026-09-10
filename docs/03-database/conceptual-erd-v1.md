@@ -860,9 +860,11 @@ erDiagram
 Total conceptual:
 
 ```text
-25 entidades propias
+24 entidades propias de Contrátame!
 +
-auth.users administrada por Supabase
+1 entidad externa administrada por Supabase: auth.users
+=
+25 entidades totales
 ```
 
 ---

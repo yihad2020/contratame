@@ -1,107 +1,56 @@
 # Contrátame! — Inventario de Entidades
 
-## 1. Objetivo
+## Estado del documento
 
-Este documento identifica las entidades principales del sistema Contrátame! antes de diseñar el modelo entidad-relación y el esquema físico de PostgreSQL.
+**Estado:** Alineado con el modelo APPROVED / FROZEN
 
-En esta etapa no se definen todavía todas las columnas, tipos de datos, índices o políticas RLS.
+**Fuentes autoritativas:** `conceptual-erd-v1.md` y `logical-schema-v1.md`
 
-El objetivo es establecer:
+**SQL implementado:** No
 
-- Qué entidades existen.
-- Qué responsabilidad tiene cada una.
-- Qué relaciones conceptuales existen entre ellas.
-- Qué entidades forman parte del MVP.
-- Qué elementos todavía requieren decisiones de negocio.
+**Migraciones creadas:** No
+
+Este documento resume las entidades realmente definidas en el modelo conceptual y el esquema lógico congelados de Contrátame!.
+
+El inventario aprobado contiene:
+
+```text
+24 entidades propias de Contrátame!
++
+1 entidad externa administrada por Supabase
+=
+25 entidades totales
+```
+
+No se agregarán entidades ni se modificarán relaciones desde este inventario. Cualquier cambio estructural deberá actualizar primero los documentos autoritativos y, cuando corresponda, documentarse mediante un ADR.
 
 ---
 
-# 2. Principio general de modelado
+# 1. Principios generales de modelado
 
-Contrátame! utilizará Supabase Auth para autenticación.
+## 1.1 Identidad y autenticación
 
-Por lo tanto:
+Supabase Auth administra la identidad mediante:
 
 `auth.users`
 
-será la fuente principal de identidad y autenticación.
-
-No se creará una segunda tabla que duplique:
-
-- Contraseña.
-- Credenciales.
-- Tokens.
-- Estado interno de autenticación.
-
-La información de negocio del usuario se almacenará en tablas propias del sistema.
-
-Relación conceptual:
+Cada identidad autenticada tiene exactamente un perfil general:
 
 ```text
 auth.users
-     │
-     ▼
+    │
+    │ 1 : 1
+    ▼
 profiles
 ```
 
----
+Contrátame! no almacena contraseñas ni duplica credenciales, tokens o el estado interno de autenticación.
 
-# 3. Entidades principales del MVP
+## 1.2 Cliente como capacidad por defecto
 
-## 3.1 Profile
+Todo usuario registrado puede utilizar la plataforma como cliente. No existe una entidad `customer_profiles` en el modelo aprobado.
 
-**Nombre lógico:** Perfil de usuario
-
-**Nombre previsto en base de datos:** `profiles`
-
-Representa la información general de una persona registrada en Contrátame!.
-
-Puede corresponder a:
-
-- Cliente.
-- Trabajador.
-- Administrador.
-
-Responsabilidades:
-
-- Datos generales del usuario.
-- Nombre.
-- Apellido.
-- Teléfono.
-- Fotografía.
-- Rol dentro de la plataforma.
-- Estado general de la cuenta.
-
-Relación principal:
-
-```text
-auth.users
-     │
-     │ 1 : 1
-     ▼
-profiles
-```
-
----
-
-## 3.2 Worker Profile
-
-**Nombre lógico:** Perfil profesional del trabajador
-
-**Nombre previsto:** `worker_profiles`
-
-Contiene la información exclusivamente relacionada con un trabajador independiente.
-
-Responsabilidades:
-
-- Descripción profesional.
-- Experiencia.
-- Zona de trabajo.
-- Radio de servicio.
-- Estado de publicación.
-- Información profesional adicional.
-
-Relación:
+Un usuario se convierte adicionalmente en trabajador cuando crea un perfil profesional:
 
 ```text
 profiles
@@ -111,651 +60,627 @@ profiles
 worker_profiles
 ```
 
-Un usuario cliente no necesita un `worker_profile`.
+## 1.3 Roles privilegiados
 
----
-
-## 3.3 Service Category
-
-**Nombre lógico:** Categoría de servicio
-
-**Nombre previsto:** `service_categories`
-
-Representa categorías generales disponibles en la plataforma.
-
-Ejemplos:
-
-- Electricidad.
-- Plomería.
-- Carpintería.
-- Construcción.
-- Limpieza.
-- Jardinería.
-- Pintura.
-- Mecánica.
-
-Las categorías serán administradas por Contrátame!.
-
----
-
-## 3.4 Worker Service
-
-**Nombre lógico:** Servicio ofrecido por trabajador
-
-**Nombre previsto:** `worker_services`
-
-Representa un servicio específico que un trabajador ofrece.
-
-Ejemplo:
+Los permisos administrativos se representan mediante `user_roles`. Cliente y trabajador no se modelan como roles mutuamente excluyentes.
 
 ```text
-Categoría:
-Electricidad
-
-Servicio:
-Instalación de luminarias
-
-Trabajador:
-Carlos Mendoza
-
-Precio:
-Bs 100
+profiles
+   │
+   │ 1 : 0..N
+   ▼
+user_roles
 ```
 
-Un trabajador podrá ofrecer múltiples servicios.
+---
 
-Una categoría podrá ser utilizada por múltiples trabajadores.
+# 2. Usuarios
 
-Relación conceptual:
+## 2.1 profiles
+
+Representa la información general de una persona registrada en Contrátame! y mantiene una relación 1:1 con `auth.users`.
+
+Responsabilidades principales:
+
+- Nombre y apellido.
+- Teléfono.
+- Referencia a fotografía de perfil en Storage.
+- Estado general de la cuenta.
+
+Estados aprobados de cuenta:
+
+```text
+active
+suspended
+deactivated
+```
+
+## 2.2 user_roles
+
+Representa permisos privilegiados asociados a un perfil. El rol inicial definido es:
+
+```text
+admin
+```
+
+Un perfil puede tener cero o varios registros de rol. La entidad conserva quién concedió el permiso cuando corresponda.
+
+---
+
+# 3. Trabajadores
+
+## 3.1 worker_profiles
+
+Representa la información profesional adicional de un usuario que ofrece servicios.
+
+Responsabilidades principales:
+
+- Descripción profesional.
+- Años de experiencia.
+- Estado actual de aprobación y publicación.
+
+Estados aprobados:
+
+```text
+draft
+pending_approval
+approved
+rejected
+suspended
+```
+
+Un perfil puede tener como máximo un registro en `worker_profiles`. Solo los trabajadores con estado `approved` pueden aparecer públicamente.
+
+## 3.2 worker_locations
+
+Separa la geolocalización profesional del resto del perfil del trabajador.
+
+Relación:
 
 ```text
 worker_profiles
-       │
-       │ 1 : N
-       ▼
-worker_services
-       │
-       │ N : 1
-       ▼
-service_categories
+      │
+      │ 1 : 0..1
+      ▼
+worker_locations
 ```
 
----
+La ubicación puede faltar mientras el perfil está en `draft`, pero es obligatoria antes de enviarlo a aprobación.
 
-## 3.5 Worker Availability
+Responsabilidades principales:
 
-**Nombre lógico:** Disponibilidad del trabajador
+- Ubicación privada exacta.
+- Ubicación pública aproximada opcional.
+- Etiqueta pública de zona.
+- Ciudad y departamento.
+- País, restringido inicialmente a Bolivia.
+- Radio de servicio.
 
-**Nombre previsto:** `worker_availability`
+`private_location` no se expone mediante consultas públicas. La búsqueda geográfica debe usar una operación controlada con PostGIS que devuelva únicamente información pública segura.
 
-Representa los días y horarios en los que el trabajador normalmente está disponible.
+## 3.3 worker_services
 
-Ejemplo:
+Representa cada servicio concreto ofrecido por un trabajador.
+
+Cada registro pertenece a:
+
+- Un `worker_profiles`.
+- Una `service_categories`.
+
+Los tipos de precio aprobados son:
 
 ```text
-Lunes
-08:00 - 18:00
-
-Martes
-08:00 - 18:00
+hourly
+daily
+fixed
+quote
 ```
 
-Un trabajador podrá tener múltiples bloques de disponibilidad.
+## 3.4 worker_availability
 
----
+Representa bloques recurrentes de disponibilidad de un trabajador, definidos por día de la semana y horario de inicio y fin.
 
-## 3.6 Worker Portfolio Item
+Relación:
 
-**Nombre lógico:** Elemento de portafolio
+```text
+worker_profiles 1 : N worker_availability
+```
 
-**Nombre previsto:** `worker_portfolio_items`
+## 3.5 worker_portfolio_items
 
 Representa trabajos anteriores publicados por un trabajador.
 
-Podrá contener:
-
-- Imagen.
-- Título.
-- Descripción.
-
-Las imágenes se almacenarán físicamente en Supabase Storage.
-
-La base de datos almacenará referencias hacia los archivos.
+Las imágenes se almacenan en Supabase Storage y la base de datos conserva la ruta junto con título, descripción y orden cuando corresponda.
 
 Relación:
 
 ```text
-worker_profiles
-       │
-       │ 1 : N
-       ▼
-worker_portfolio_items
+worker_profiles 1 : N worker_portfolio_items
 ```
 
 ---
 
-## 3.7 Worker Approval Request
+# 4. Catálogo
 
-**Nombre lógico:** Solicitud de aprobación de trabajador
+## 4.1 service_categories
 
-**Nombre previsto:** `worker_approval_requests`
+Representa las categorías generales de servicios administradas por Contrátame!, por ejemplo electricidad, plomería, carpintería, limpieza o mecánica.
 
-Representa cada vez que un trabajador envía su perfil para revisión administrativa.
-
-Permite conservar historial y trazabilidad.
-
-Ejemplo:
+Una categoría puede clasificar múltiples `worker_services`.
 
 ```text
-Solicitud #1
-→ Rechazada
-
-Trabajador corrige perfil
-
-Solicitud #2
-→ Aprobada
+service_categories 1 : N worker_services
 ```
-
-Debe permitir identificar:
-
-- Trabajador.
-- Fecha de envío.
-- Estado.
-- Administrador responsable.
-- Fecha de revisión.
-- Motivo de rechazo.
-- Observaciones administrativas.
-
-Relación conceptual:
-
-```text
-worker_profiles
-       │
-       │ 1 : N
-       ▼
-worker_approval_requests
-```
-
-El historial no deberá sobrescribirse cuando exista una nueva solicitud.
 
 ---
 
-## 3.8 Certification Membership
+# 5. Aprobación administrativa
 
-**Nombre lógico:** Membresía de certificación
+## 5.1 worker_approval_requests
 
-**Nombre previsto:** `certification_memberships`
-
-Representa la certificación opcional de un trabajador.
-
-Reglas actuales:
-
-- Es opcional.
-- Tiene un precio planteado de Bs 50.
-- Solo puede generar una insignia visible para trabajadores aprobados.
-- Es independiente de la aprobación administrativa.
-
-La duración y renovación todavía están pendientes de definición.
+Representa cada envío de un perfil profesional a revisión administrativa y conserva el historial sin sobrescribir solicitudes anteriores.
 
 Relación:
 
 ```text
-worker_profiles
-       │
-       │ 1 : N
-       ▼
+worker_profiles 1 : N worker_approval_requests
+```
+
+Estados aprobados de la solicitud:
+
+```text
+pending
+approved
+rejected
+```
+
+Reglas estructurales principales:
+
+- Solo puede existir una solicitud pendiente por trabajador.
+- Cada solicitud conserva un `profile_snapshot`.
+- Un rechazo requiere motivo.
+- Aprobar o rechazar requiere administrador responsable y fecha de revisión.
+- El estado actual de publicación permanece en `worker_profiles.approval_status`.
+
+---
+
+# 6. Certificación y pagos
+
+## 6.1 certification_memberships
+
+Representa el historial de certificaciones opcionales de un trabajador.
+
+La certificación es independiente de la aprobación administrativa, tiene un precio inicial planteado de Bs 50 y solo puede producir una insignia visible para un trabajador aprobado.
+
+Relación:
+
+```text
+worker_profiles 1 : N certification_memberships
+```
+
+Estados aprobados:
+
+```text
+pending_payment
+active
+expired
+cancelled
+```
+
+Solo puede existir una membresía activa por trabajador. La insignia certificada es un dato derivado de un trabajador aprobado y una membresía activa; no es un booleano canónico almacenado en `worker_profiles`.
+
+## 6.2 payment_transactions
+
+Representa los intentos de pago asociados a una membresía de certificación. En la versión 1, los pagos modelados corresponden únicamente a certificación.
+
+Relación aprobada:
+
+```text
 certification_memberships
+      │
+      │ 1 : N
+      ▼
+payment_transactions
 ```
 
-Se mantiene una relación histórica para permitir futuras renovaciones.
+Una membresía puede tener múltiples intentos de pago. Cada transacción también identifica al perfil pagador.
 
----
-
-## 3.9 Service Request
-
-**Nombre lógico:** Solicitud de servicio
-
-**Nombre previsto:** `service_requests`
-
-Representa una necesidad publicada o enviada por un cliente.
-
-Ejemplo:
+Estados aprobados:
 
 ```text
-Cliente:
-Necesito reparar una fuga de agua.
-
-Categoría:
-Plomería
-
-Zona:
-Equipetrol
-
-Fecha preferida:
-12/10/2026
+pending
+paid
+failed
+cancelled
+refunded
 ```
 
-Podrá contener:
-
-- Cliente.
-- Categoría.
-- Descripción.
-- Ubicación.
-- Fecha preferida.
-- Presupuesto cuando corresponda.
-- Estado.
+La entidad y su relación están aprobadas aunque el proveedor de pagos siga pendiente de definición.
 
 ---
 
-## 3.10 Quote
+# 7. Solicitudes, cotizaciones y contratación
 
-**Nombre lógico:** Cotización
+## 7.1 service_requests
 
-**Nombre previsto:** `quotes`
+Representa una solicitud directa enviada por un cliente a un trabajador específico por uno de los servicios que ese trabajador ofrece.
 
-Representa una propuesta económica enviada por un trabajador para una solicitud.
+El MVP no utiliza un mercado abierto donde varios trabajadores compiten por una misma solicitud.
 
-Podrá incluir:
+Cada solicitud pertenece a:
 
-- Trabajador.
-- Solicitud.
-- Precio.
-- Mensaje.
-- Estado.
-- Vigencia.
+- Un cliente mediante `profiles`.
+- Un trabajador mediante `worker_profiles`.
+- Un servicio mediante `worker_services`.
 
-Relación conceptual:
+El servicio seleccionado debe pertenecer al mismo trabajador destinatario.
+
+Estados aprobados:
+
+```text
+pending
+quoted
+accepted
+rejected
+cancelled
+expired
+```
+
+La tabla conserva una etiqueta aproximada de la zona del trabajo, pero no su ubicación exacta.
+
+## 7.2 service_request_locations
+
+Aísla la ubicación exacta y la dirección sensible del trabajo respecto de la información general de `service_requests`.
+
+Relación aprobada:
 
 ```text
 service_requests
-       │
-       │ 1 : N
-       ▼
-quotes
+      │
+      │ 1 : 1
+      ▼
+service_request_locations
 ```
 
-Una solicitud podrá potencialmente recibir más de una cotización.
+Reglas de acceso conceptuales:
 
----
+- El cliente propietario puede acceder.
+- El trabajador no accede a la ubicación exacta antes del booking.
+- El trabajador con un booking válido puede acceder según RLS u operación controlada.
+- Terceros no tienen acceso.
 
-## 3.11 Booking
+## 7.3 quotes
 
-**Nombre lógico:** Contratación / Reserva
+Representa las revisiones históricas de cotización para una solicitud.
 
-**Nombre previsto:** `bookings`
+Relación:
 
-Representa el acuerdo formal dentro de Contrátame! entre un cliente y un trabajador.
+```text
+service_requests 1 : N quotes
+```
 
-Se crea una vez que existe una contratación aceptada.
+Estados aprobados:
 
-Podrá representar estados como:
+```text
+pending
+accepted
+rejected
+withdrawn
+expired
+superseded
+```
+
+Cada revisión tiene un número único dentro de su solicitud y solo una cotización puede quedar aceptada por solicitud.
+
+## 7.4 bookings
+
+Representa la contratación creada cuando una cotización es aceptada.
+
+Relaciones principales:
+
+```text
+service_requests 1 : 0..1 bookings
+quotes           1 : 0..1 bookings
+```
+
+Cada booking conserva el cliente, el trabajador, el servicio acordado, el precio acordado y la fecha programada como información histórica.
+
+Estados aprobados:
 
 ```text
 scheduled
 in_progress
+completion_pending
 completed
 cancelled
 ```
 
-Relacionará:
+## 7.5 booking_status_history
 
-- Cliente.
-- Trabajador.
-- Solicitud.
-- Cotización aceptada cuando exista.
-- Fecha programada.
-- Precio acordado.
-- Estado.
-
----
-
-## 3.12 Review
-
-**Nombre lógico:** Calificación y reseña
-
-**Nombre previsto:** `reviews`
-
-Representa la evaluación realizada después de un servicio.
-
-Una reseña deberá estar relacionada con una contratación válida.
-
-Relación conceptual:
-
-```text
-bookings
-   │
-   │ 1 : 0..1
-   ▼
-reviews
-```
-
-La política inicial será evitar reseñas de personas que no hayan completado una contratación.
-
----
-
-## 3.13 Favorite
-
-**Nombre lógico:** Profesional favorito
-
-**Nombre previsto:** `favorites`
-
-Permite que un cliente guarde un trabajador para encontrarlo nuevamente.
-
-Relación conceptual:
-
-```text
-customer profile
-      │
-      │ N : N
-      ▼
-worker profile
-```
-
-La tabla `favorites` resolverá esta relación.
-
----
-
-## 3.14 Conversation
-
-**Nombre lógico:** Conversación
-
-**Nombre previsto:** `conversations`
-
-Representa un canal de comunicación entre usuarios.
-
-En el MVP, estará principalmente relacionado con:
-
-- Cliente.
-- Trabajador.
-- Solicitud o contratación cuando corresponda.
-
----
-
-## 3.15 Message
-
-**Nombre lógico:** Mensaje
-
-**Nombre previsto:** `messages`
-
-Representa cada mensaje enviado dentro de una conversación.
+Registra los cambios de estado de un booking sin reemplazar su historial.
 
 Relación:
 
 ```text
-conversations
-      │
-      │ 1 : N
-      ▼
-messages
+bookings 1 : N booking_status_history
 ```
 
----
-
-## 3.16 Notification
-
-**Nombre lógico:** Notificación
-
-**Nombre previsto:** `notifications`
-
-Representa eventos relevantes comunicados a un usuario.
-
-Ejemplos:
-
-- Perfil aprobado.
-- Perfil rechazado.
-- Nueva solicitud.
-- Nueva cotización.
-- Nuevo mensaje.
-- Servicio aceptado.
-- Servicio próximo.
-- Nueva calificación.
+Conserva el estado anterior, el nuevo estado, el actor, una nota opcional y la fecha del cambio.
 
 ---
 
-## 3.17 User Report
+# 8. Reputación y favoritos
 
-**Nombre lógico:** Reporte de usuario o contenido
+## 8.1 reviews
 
-**Nombre previsto:** `user_reports`
+Representa la calificación del trabajador realizada por el cliente después del servicio.
 
-Permite reportar:
+Relación:
 
-- Trabajadores.
-- Clientes.
-- Comportamiento inapropiado.
-- Contenido.
-- Problemas ocurridos durante un servicio.
+```text
+bookings 1 : 0..1 reviews
+```
 
-El reporte será revisado desde el panel administrativo.
+Reglas aprobadas para el MVP:
 
----
+- Solo el cliente participante puede crearla.
+- El booking debe estar `completed`.
+- Solo existe una reseña por booking.
+- La calificación está entre 1 y 5.
+- El promedio y el número de reseñas son datos derivados.
 
-## 3.18 Audit Log
+## 8.2 favorites
 
-**Nombre lógico:** Registro de auditoría
+Representa el marcador privado de un trabajador guardado por un perfil.
 
-**Nombre previsto:** `audit_logs`
+```text
+profiles ── favorites ── worker_profiles
+```
 
-Permitirá registrar acciones administrativas o sensibles.
-
-Ejemplos:
-
-- Administrador aprobó trabajador.
-- Administrador rechazó trabajador.
-- Cuenta suspendida.
-- Certificación activada.
-- Reporte resuelto.
-
-Su objetivo es proporcionar trazabilidad.
+No crea conversaciones, solicitudes o bookings; tampoco notifica al trabajador. La combinación de perfil y trabajador no puede duplicarse.
 
 ---
 
-# 4. Entidades relacionadas con ubicación
+# 9. Comunicación y notificaciones
 
-La geolocalización requiere tratamiento especial debido a privacidad y PostGIS.
+## 9.1 conversations
 
-Actualmente existen dos posibilidades.
+Representa una conversación vinculada a una solicitud real de servicio.
 
-## Opción A
+Relación:
 
-Mantener la ubicación de servicio dentro de:
+```text
+service_requests 1 : 0..1 conversations
+```
 
-`worker_profiles`
+Estados aprobados:
 
-## Opción B
+```text
+active
+closed
+```
 
-Crear una entidad independiente:
+Una conversación cerrada permanece legible, pero no acepta nuevos mensajes.
 
-`worker_locations`
+## 9.2 messages
 
-Una entidad independiente permitiría:
+Representa cada mensaje dentro de una conversación.
 
-- Separar información privada y pública.
-- Manejar actualización de ubicación.
-- Aplicar controles de acceso específicos.
-- Evolucionar hacia múltiples zonas de servicio.
+```text
+conversations 1 : N messages
+```
 
-La decisión todavía no está cerrada.
+Tipos iniciales:
 
-Debe resolverse antes de diseñar el esquema físico definitivo.
+```text
+text
+system
+```
 
----
+## 9.3 notifications
 
-# 5. Entidades relacionadas con pagos
+Representa notificaciones internas dirigidas a un perfil por eventos relevantes de la plataforma.
 
-El sistema tendrá inicialmente un pago asociado a la certificación de Bs 50.
+```text
+profiles 1 : N notifications
+```
 
-Es probable que sea necesaria una entidad:
+Las notificaciones internas constituyen el registro; una notificación push es únicamente un mecanismo externo de entrega.
 
-`payments`
+## 9.4 device_push_tokens
 
-Sin embargo, todavía no se encuentra definido:
+Representa los tokens de dispositivos registrados por un perfil para la entrega de notificaciones push.
 
-- Proveedor de pago.
-- Duración de certificación.
-- Renovación.
-- Reembolsos.
-- Estados definitivos de pago.
-- Integración técnica.
+```text
+profiles 1 : N device_push_tokens
+```
 
-Por esta razón, la entidad `payments` se considera prevista pero no finalizada.
-
-No deberá diseñarse en detalle hasta formalizar el proceso de certificación.
-
----
-
-# 6. Entidades que NO se crearán inicialmente
-
-## Customer Profile separado
-
-Inicialmente no se considera necesaria una tabla:
-
-`customer_profiles`
-
-La información general del cliente podrá residir en:
-
-`profiles`
-
-Si posteriormente aparecen datos exclusivos y significativos para clientes, esta decisión podrá revisarse mediante un ADR.
+Cada token es único y puede revocarse.
 
 ---
 
-## Admin Profile separado
+# 10. Moderación y auditoría
 
-Inicialmente no se considera necesaria una tabla:
+## 10.1 user_reports
 
-`admin_profiles`
+Representa un reporte creado por un perfil sobre otro perfil, con un booking opcional como contexto.
 
-El rol administrativo se podrá representar mediante el perfil general y las reglas de autorización.
+Estados aprobados:
+
+```text
+open
+under_review
+resolved
+dismissed
+```
+
+El perfil que reporta debe ser diferente del perfil reportado. Un reporte no produce una sanción automática y su revisión corresponde a administración.
+
+## 10.2 audit_logs
+
+Registra acciones administrativas o sensibles, como aprobaciones, rechazos, suspensiones, activaciones de certificación y resolución de reportes.
+
+Los registros son append-only. Los usuarios normales no pueden insertarlos, actualizarlos o eliminarlos arbitrariamente.
 
 ---
 
-## Credentials
-
-No se creará:
-
-`credentials`
-
-ni tablas equivalentes para almacenar contraseñas.
-
-Supabase Auth administrará las credenciales.
-
----
-
-# 7. Relaciones conceptuales principales
-
-Vista simplificada:
+# 11. Relaciones conceptuales resumidas
 
 ```text
 auth.users
     │
+    │ 1 : 1
     ▼
 profiles
     │
-    ├───────────────────────────────┐
-    │                               │
-    │ role = customer               │ role = worker
-    │                               │
-    │                               ▼
-    │                         worker_profiles
-    │                               │
-    │                ┌──────────────┼───────────────┐
-    │                │              │               │
-    │                ▼              ▼               ▼
-    │        worker_services   availability      portfolio
-    │                │
-    │                ▼
-    │       service_categories
-    │
-    │
-    ├──────────────► service_requests
-    │                     │
-    │                     ▼
-    │                   quotes
-    │                     │
-    │                     ▼
-    └──────────────────► bookings
-                          │
-                          ▼
-                        reviews
-```
+    ├── user_roles
+    └── worker_profiles (0..1)
+            │
+            ├── worker_locations (0..1)
+            ├── worker_services
+            │       └── service_categories
+            ├── worker_availability
+            ├── worker_portfolio_items
+            ├── worker_approval_requests
+            └── certification_memberships
+                    └── payment_transactions
 
-Procesos adicionales del trabajador:
-
-```text
-worker_profiles
-      │
-      ├── worker_approval_requests
-      │
-      └── certification_memberships
-```
-
-Comunicación:
-
-```text
 profiles
-   │
-   ▼
-conversations
-   │
-   ▼
-messages
+    │
+    └── service_requests
+            ├── service_request_locations (1:1)
+            ├── quotes
+            ├── conversations
+            │       └── messages
+            └── bookings
+                    ├── booking_status_history
+                    └── reviews
+
+profiles ── favorites ── worker_profiles
+profiles ── notifications
+profiles ── device_push_tokens
+profiles ── user_reports
+bookings ── user_reports
+profiles ── audit_logs
 ```
 
 ---
 
-# 8. Inventario preliminar
+# 12. Inventario aprobado y congelado
 
-Entidades consideradas parte del núcleo:
+## Entidad externa administrada por Supabase
+
+1. `auth.users`
+
+## Entidades propias de Contrátame!
+
+### Usuarios
 
 1. `profiles`
-2. `worker_profiles`
-3. `service_categories`
-4. `worker_services`
-5. `worker_availability`
-6. `worker_portfolio_items`
-7. `worker_approval_requests`
-8. `certification_memberships`
-9. `service_requests`
-10. `quotes`
-11. `bookings`
-12. `reviews`
-13. `favorites`
-14. `conversations`
-15. `messages`
-16. `notifications`
-17. `user_reports`
-18. `audit_logs`
+2. `user_roles`
 
-Entidades pendientes de decisión:
+### Trabajadores
 
-19. `worker_locations`
-20. `payments`
+3. `worker_profiles`
+4. `worker_locations`
+5. `worker_services`
+6. `worker_availability`
+7. `worker_portfolio_items`
 
-Entidad externa administrada por Supabase:
+### Catálogo
 
-21. `auth.users`
+8. `service_categories`
+
+### Aprobación
+
+9. `worker_approval_requests`
+
+### Certificación
+
+10. `certification_memberships`
+11. `payment_transactions`
+
+### Marketplace
+
+12. `service_requests`
+13. `service_request_locations`
+14. `quotes`
+15. `bookings`
+16. `booking_status_history`
+
+### Reputación
+
+17. `reviews`
+18. `favorites`
+
+### Comunicación
+
+19. `conversations`
+20. `messages`
+21. `notifications`
+22. `device_push_tokens`
+
+### Moderación y auditoría
+
+23. `user_reports`
+24. `audit_logs`
+
+Total:
+
+```text
+24 entidades propias
++
+1 entidad externa
+=
+25 entidades totales
+```
 
 ---
 
-# 9. Decisiones pendientes antes del ERD definitivo
+# 13. Entidades que no se crearán inicialmente
 
-Antes de finalizar el modelo entidad-relación deberán resolverse:
+## customer_profiles
 
-1. Modelo exacto de ubicación del trabajador.
-2. Diferencia entre ubicación privada y zona pública.
-3. Duración de la certificación.
-4. Renovación de la certificación.
-5. Proveedor y flujo de pago.
-6. Si una solicitud se envía a un trabajador específico o puede publicarse para varios trabajadores.
-7. Si múltiples trabajadores pueden cotizar una misma solicitud.
-8. Política de cancelaciones.
-9. Política de reseñas.
-10. Reglas de comunicación antes y después de una contratación.
-11. Estados definitivos de solicitudes.
-12. Estados definitivos de cotizaciones.
-13. Estados definitivos de reservas.
-14. Datos requeridos para aprobación administrativa.
-15. Datos adicionales requeridos para certificación.
+No se creará una tabla separada para clientes. Todo `profiles` tiene capacidad de cliente por defecto.
 
-Estas decisiones deben resolverse antes de convertir el inventario conceptual en un esquema físico definitivo.
+## admin_profiles
+
+No se creará una tabla separada para administradores. Los permisos privilegiados se representan mediante `user_roles`.
+
+## credentials
+
+No se crearán tablas propias para contraseñas, tokens de autenticación o credenciales. Supabase Auth administra esa información.
+
+---
+
+# 14. Decisiones de negocio todavía pendientes
+
+Las siguientes decisiones permanecen pendientes y deberán resolverse antes de implementar los módulos afectados:
+
+1. Duración exacta de la certificación.
+2. Política de renovación de la certificación.
+3. Requisitos exactos para obtener y mostrar el badge certificado.
+4. Proveedor y flujo definitivo de pagos.
+5. Estrategia exacta para generar `public_location`.
+6. Radio mínimo y máximo permitido.
+7. Campos obligatorios para enviar un perfil a aprobación.
+8. Estructura definitiva de `profile_snapshot`.
+9. Política detallada de cancelaciones.
+10. Política de disputas.
+11. Política de no-show.
+12. Política de eliminación o anonimización de cuentas.
+13. Retención de mensajes.
+14. Retención de audit logs.
+15. Proveedor definitivo de notificaciones push.
+16. Política final de moderación de reseñas.
+
+Estas decisiones pendientes no alteran el inventario estructural congelado. No deben resolverse mediante suposiciones durante la implementación.
+
+---
+
+# 15. Regla de alineación
+
+- `conceptual-erd-v1.md` y `logical-schema-v1.md` son las fuentes autoritativas del modelo congelado.
+- Este inventario debe permanecer consistente con las entidades y relaciones definidas en esos documentos.
+- No se agregarán entidades ni se cambiarán cardinalidades sin una decisión explícita y la actualización documental correspondiente.
+- Las futuras migraciones deberán ser reproducibles y respetar el esquema lógico aprobado.
