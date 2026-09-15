@@ -1,25 +1,133 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { AppButton } from '@/components/ui/AppButton'; import { FormField } from '@/components/ui/FormField'; import { Screen } from '@/components/ui/Screen'; import { Body, ErrorMessage, Title } from '@/components/ui/Typography';
-import { colors, spacing } from '@/constants/theme'; import { useAuth } from '@/modules/auth/auth-context'; import { validateRegistration, type RegistrationInput, type ValidationErrors } from '@/modules/auth/validation';
+import { StyleSheet, Text, View } from 'react-native';
 
-const empty: RegistrationInput = { firstName: '', lastName: '', email: '', phone: '', password: '', passwordConfirmation: '' };
+import { AppButton } from '@/components/ui/AppButton';
+import { AppHeader } from '@/components/ui/AppHeader';
+import { FormField } from '@/components/ui/FormField';
+import { FormSection } from '@/components/ui/FormSection';
+import { Screen } from '@/components/ui/Screen';
+import { Body, DisplayTitle, ErrorMessage } from '@/components/ui/Typography';
+import { colors, spacing, typography } from '@/constants/theme';
+import { useAuth } from '@/modules/auth/auth-context';
+import {
+  validateRegistration,
+  type RegistrationInput,
+  type ValidationErrors,
+} from '@/modules/auth/validation';
+
+const empty: RegistrationInput = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  password: '',
+  passwordConfirmation: '',
+};
+
 export default function SignUpScreen() {
-  const { signUp } = useAuth(); const [form, setForm] = useState(empty); const [errors, setErrors] = useState<ValidationErrors>({}); const [failure, setFailure] = useState<string | null>(null); const [busy, setBusy] = useState(false);
-  function change(field: keyof RegistrationInput, value: string) { setForm((current) => ({ ...current, [field]: value })); }
-  async function submit() {
-    const checked = validateRegistration(form); if (!checked.ok) { setErrors(checked.errors); return; }
-    setErrors({}); setFailure(null); setBusy(true); try { await signUp(form); } catch (cause) { setFailure(cause instanceof Error ? cause.message : 'No se pudo crear la cuenta.'); } finally { setBusy(false); }
+  const { signUp } = useAuth();
+  const [form, setForm] = useState(empty);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [failure, setFailure] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  function change(field: keyof RegistrationInput, value: string) {
+    setForm((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: undefined }));
   }
-  return <Screen><Title>Crea tu cuenta</Title><Body muted>Todos los usuarios pueden solicitar servicios. La capacidad de trabajador se habilitará en otro módulo.</Body>
-    <FormField label="Nombre" value={form.firstName} onChangeText={(v) => change('firstName', v)} error={errors.firstName} autoComplete="given-name" />
-    <FormField label="Apellido" value={form.lastName} onChangeText={(v) => change('lastName', v)} error={errors.lastName} autoComplete="family-name" />
-    <FormField label="Teléfono (opcional)" value={form.phone} onChangeText={(v) => change('phone', v)} error={errors.phone} keyboardType="phone-pad" placeholder="+59170000000" />
-    <FormField label="Correo electrónico" value={form.email} onChangeText={(v) => change('email', v)} error={errors.email} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-    <FormField label="Contraseña" value={form.password} onChangeText={(v) => change('password', v)} error={errors.password} secureTextEntry autoComplete="new-password" />
-    <FormField label="Confirma tu contraseña" value={form.passwordConfirmation} onChangeText={(v) => change('passwordConfirmation', v)} error={errors.passwordConfirmation} secureTextEntry />
-    {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}<AppButton label="Crear cuenta" onPress={() => void submit()} disabled={busy} />
-    <Link href="/(auth)/sign-in" style={styles.link}>Ya tengo una cuenta</Link></Screen>;
+
+  async function submit() {
+    const checked = validateRegistration(form);
+    if (!checked.ok) {
+      setErrors(checked.errors);
+      return;
+    }
+    setErrors({});
+    setFailure(null);
+    setBusy(true);
+    try {
+      await signUp(form);
+    } catch (cause) {
+      setFailure(cause instanceof Error ? cause.message : 'No se pudo crear la cuenta.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Screen contentStyle={styles.screen}>
+      <AppHeader logoWidth={124} />
+      <View style={styles.heading}>
+        <DisplayTitle>Crea tu cuenta</DisplayTitle>
+        <Body muted>Completa tus datos para comenzar.</Body>
+      </View>
+      <FormSection label="Datos personales">
+        <FormField
+          autoComplete="given-name"
+          error={errors.firstName}
+          label="Nombre"
+          onChangeText={(value) => change('firstName', value)}
+          value={form.firstName}
+        />
+        <FormField
+          autoComplete="family-name"
+          error={errors.lastName}
+          label="Apellido"
+          onChangeText={(value) => change('lastName', value)}
+          value={form.lastName}
+        />
+        <FormField
+          error={errors.phone}
+          keyboardType="phone-pad"
+          label="Teléfono (opcional)"
+          onChangeText={(value) => change('phone', value)}
+          placeholder="+591 70000000"
+          value={form.phone}
+        />
+      </FormSection>
+      <FormSection label="Cuenta">
+        <FormField
+          autoCapitalize="none"
+          autoComplete="email"
+          error={errors.email}
+          keyboardType="email-address"
+          label="Correo electrónico"
+          onChangeText={(value) => change('email', value)}
+          value={form.email}
+        />
+        <FormField
+          autoComplete="new-password"
+          error={errors.password}
+          helperText="Mínimo 8 caracteres."
+          label="Contraseña"
+          onChangeText={(value) => change('password', value)}
+          secureTextEntry
+          value={form.password}
+        />
+        <FormField
+          error={errors.passwordConfirmation}
+          label="Confirmar contraseña"
+          onChangeText={(value) => change('passwordConfirmation', value)}
+          onSubmitEditing={() => void submit()}
+          returnKeyType="done"
+          secureTextEntry
+          value={form.passwordConfirmation}
+        />
+      </FormSection>
+      {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}
+      <AppButton label="Crear cuenta" loading={busy} onPress={() => void submit()} />
+      <Text style={styles.accountPrompt}>
+        ¿Ya tienes una cuenta?{' '}
+        <Link href="/(auth)/sign-in" style={styles.link}>Iniciar sesión</Link>
+      </Text>
+    </Screen>
+  );
 }
-const styles = StyleSheet.create({ link: { color: colors.primary, textAlign: 'center', fontWeight: '700', padding: spacing.md } });
+
+const styles = StyleSheet.create({
+  screen: { gap: spacing.lg },
+  heading: { gap: spacing.xs },
+  accountPrompt: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
+  link: { color: colors.primary, fontWeight: '700' },
+});

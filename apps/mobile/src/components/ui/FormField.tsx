@@ -1,18 +1,77 @@
-import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
-import { colors, spacing } from '@/constants/theme';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 
-export function FormField({ label, error, ...inputProps }: TextInputProps & { label: string; error?: string }) {
+import { AppIcon } from '@/components/ui/AppIcon';
+import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+
+type FormFieldProps = Omit<TextInputProps, 'style'> & {
+  label: string;
+  error?: string;
+  helperText?: string;
+};
+
+export function FormField({ label, error, helperText, secureTextEntry = false, editable = true, ...inputProps }: FormFieldProps) {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const canTogglePassword = secureTextEntry;
+
   return (
     <View style={styles.group}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput {...inputProps} accessibilityLabel={label} placeholderTextColor={colors.muted}
-        style={[styles.input, error ? styles.inputError : undefined]} />
+      <View style={[styles.inputShell, !editable && styles.inputDisabled, error && styles.inputError]}>
+        <TextInput
+          {...inputProps}
+          accessibilityLabel={label}
+          editable={editable}
+          placeholderTextColor={colors.textSecondary}
+          secureTextEntry={secureTextEntry && !passwordVisible}
+          selectionColor={colors.primary}
+          style={styles.input}
+        />
+        {canTogglePassword ? (
+          <Pressable
+            accessibilityLabel={passwordVisible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={() => setPasswordVisible((current) => !current)}
+            style={styles.trailingAction}
+          >
+            <AppIcon name={passwordVisible ? 'eyeOff' : 'eye'} size={sizing.iconMd} color={colors.textSecondary} />
+          </Pressable>
+        ) : null}
+      </View>
       {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+      {!error && helperText ? <Text style={styles.helper}>{helperText}</Text> : null}
     </View>
   );
 }
+
 const styles = StyleSheet.create({
-  group: { gap: spacing.sm }, label: { color: colors.text, fontWeight: '600', fontSize: 15 },
-  input: { minHeight: 48, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 10, paddingHorizontal: spacing.md, color: colors.text, fontSize: 16 },
-  inputError: { borderColor: colors.danger }, error: { color: colors.danger, fontSize: 13 },
+  group: { gap: spacing.sm },
+  label: { color: colors.text, ...typography.label },
+  inputShell: {
+    minHeight: sizing.inputHeight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.md,
+  },
+  input: {
+    flex: 1,
+    minHeight: sizing.inputHeight - 2,
+    paddingHorizontal: spacing.md,
+    color: colors.text,
+    ...typography.body,
+  },
+  trailingAction: {
+    width: sizing.touchTarget,
+    minHeight: sizing.touchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inputError: { borderColor: colors.danger },
+  inputDisabled: { backgroundColor: colors.surfaceMuted },
+  error: { color: colors.danger, ...typography.caption },
+  helper: { color: colors.textSecondary, ...typography.caption },
 });

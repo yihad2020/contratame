@@ -1,6 +1,134 @@
-import { useState } from 'react'; import { AppButton } from '@/components/ui/AppButton'; import { FormField } from '@/components/ui/FormField'; import { Screen } from '@/components/ui/Screen'; import { Body, ErrorMessage, Title } from '@/components/ui/Typography'; import { useAuth } from '@/modules/auth/auth-context'; import { validateProfileInput, type ValidationErrors } from '@/modules/auth/validation'; import { updateOwnProfile } from '@/modules/profile/profile-service';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
+import { AppButton } from '@/components/ui/AppButton';
+import { AppHeader } from '@/components/ui/AppHeader';
+import { AppIcon } from '@/components/ui/AppIcon';
+import { FormField } from '@/components/ui/FormField';
+import { FormSection } from '@/components/ui/FormSection';
+import { Screen } from '@/components/ui/Screen';
+import { Body, ErrorMessage, FeedbackMessage, Title } from '@/components/ui/Typography';
+import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { useAuth } from '@/modules/auth/auth-context';
+import { validateProfileInput, type ValidationErrors } from '@/modules/auth/validation';
+import { updateOwnProfile } from '@/modules/profile/profile-service';
+
 export default function ProfileScreen() {
-  const { profile, user, replaceProfile } = useAuth(); const [firstName, setFirstName] = useState(profile?.first_name ?? ''); const [lastName, setLastName] = useState(profile?.last_name ?? ''); const [phone, setPhone] = useState(profile?.phone ?? ''); const [errors, setErrors] = useState<ValidationErrors>({}); const [message, setMessage] = useState<string | null>(null); const [busy, setBusy] = useState(false);
-  async function submit() { const checked = validateProfileInput({ firstName, lastName, phone }); if (!checked.ok) { setErrors(checked.errors); return; } setErrors({}); setMessage(null); setBusy(true); try { replaceProfile(await updateOwnProfile(checked.value)); setMessage('Perfil actualizado.'); } catch (cause) { setMessage(cause instanceof Error ? cause.message : 'No se pudo actualizar el perfil.'); } finally { setBusy(false); } }
-  return <Screen><Title>Mi perfil</Title><Body muted>El correo pertenece a Supabase Auth y no se edita desde este perfil.</Body><FormField label="Correo electrónico" value={user?.email ?? ''} editable={false} /><FormField label="Nombre" value={firstName} onChangeText={setFirstName} error={errors.firstName} /><FormField label="Apellido" value={lastName} onChangeText={setLastName} error={errors.lastName} /><FormField label="Teléfono (opcional)" value={phone} onChangeText={setPhone} error={errors.phone} keyboardType="phone-pad" />{message ? (message === 'Perfil actualizado.' ? <Body>{message}</Body> : <ErrorMessage>{message}</ErrorMessage>) : null}<AppButton label="Guardar cambios" onPress={() => void submit()} disabled={busy} /></Screen>;
+  const { profile, user, replaceProfile, signOut } = useAuth();
+  const [firstName, setFirstName] = useState(profile?.first_name ?? '');
+  const [lastName, setLastName] = useState(profile?.last_name ?? '');
+  const [phone, setPhone] = useState(profile?.phone ?? '');
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [message, setMessage] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  function clearError(field: 'firstName' | 'lastName' | 'phone') {
+    setErrors((current) => ({ ...current, [field]: undefined }));
+    setMessage(null);
+  }
+
+  async function submit() {
+    const checked = validateProfileInput({ firstName, lastName, phone });
+    if (!checked.ok) {
+      setErrors(checked.errors);
+      return;
+    }
+    setErrors({});
+    setMessage(null);
+    setBusy(true);
+    try {
+      replaceProfile(await updateOwnProfile(checked.value));
+      setFirstName(checked.value.firstName);
+      setLastName(checked.value.lastName);
+      setPhone(checked.value.phone);
+      setMessage({ tone: 'success', text: 'Tus datos se actualizaron correctamente.' });
+    } catch (cause) {
+      setMessage({
+        tone: 'error',
+        text: cause instanceof Error ? cause.message : 'No se pudo actualizar el perfil.',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Screen contentStyle={styles.screen}>
+      <AppHeader onBack={() => router.back()} title="Mi perfil" variant="navigation" />
+      <View style={styles.heading}>
+        <Title>Información personal</Title>
+        <Body muted>Mantén tus datos actualizados.</Body>
+      </View>
+      <FormSection label="Cuenta">
+        <View style={styles.metadataRow}>
+          <View style={styles.metadataIcon}>
+            <AppIcon color={colors.textSecondary} name="mail" size={sizing.iconMd} />
+          </View>
+          <View style={styles.metadataCopy}>
+            <Text style={styles.metadataLabel}>Correo electrónico</Text>
+            <Text numberOfLines={1} selectable style={styles.metadataValue}>{user?.email}</Text>
+            <Text style={styles.metadataHelper}>No editable</Text>
+          </View>
+        </View>
+      </FormSection>
+      <FormSection label="Información personal">
+        <FormField
+          autoComplete="given-name"
+          error={errors.firstName}
+          label="Nombre"
+          onChangeText={(value) => {
+            setFirstName(value);
+            clearError('firstName');
+          }}
+          value={firstName}
+        />
+        <FormField
+          autoComplete="family-name"
+          error={errors.lastName}
+          label="Apellido"
+          onChangeText={(value) => {
+            setLastName(value);
+            clearError('lastName');
+          }}
+          value={lastName}
+        />
+        <FormField
+          error={errors.phone}
+          keyboardType="phone-pad"
+          label="Teléfono (opcional)"
+          onChangeText={(value) => {
+            setPhone(value);
+            clearError('phone');
+          }}
+          placeholder="+591 70000000"
+          value={phone}
+        />
+      </FormSection>
+      {message?.tone === 'success' ? <FeedbackMessage>{message.text}</FeedbackMessage> : null}
+      {message?.tone === 'error' ? <ErrorMessage>{message.text}</ErrorMessage> : null}
+      <AppButton icon="check" label="Guardar cambios" loading={busy} onPress={() => void submit()} />
+      <FormSection label="Cuenta">
+        <AppButton icon="logout" label="Cerrar sesión" onPress={() => void signOut()} variant="ghost" />
+      </FormSection>
+    </Screen>
+  );
 }
+
+const styles = StyleSheet.create({
+  screen: { gap: spacing.lg },
+  heading: { gap: spacing.xs },
+  metadataRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  metadataIcon: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.md,
+    backgroundColor: colors.surfaceMuted,
+  },
+  metadataCopy: { flex: 1, gap: spacing.xxs },
+  metadataLabel: { color: colors.textSecondary, ...typography.caption },
+  metadataValue: { color: colors.text, ...typography.bodyStrong },
+  metadataHelper: { color: colors.textSecondary, ...typography.caption },
+});

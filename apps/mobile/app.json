@@ -29,9 +29,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#175CD3",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#F7F9FC",
+          "image": "./assets/images/brand/contratame-bear.png",
+          "imageWidth": 160
         }
       ],
       "expo-secure-store"
