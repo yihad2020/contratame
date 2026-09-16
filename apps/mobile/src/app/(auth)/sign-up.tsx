@@ -2,11 +2,10 @@ import { Link } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { AuthGlassScreen } from '@/components/brand/AuthGlassScreen';
 import { AppButton } from '@/components/ui/AppButton';
-import { AppHeader } from '@/components/ui/AppHeader';
 import { FormField } from '@/components/ui/FormField';
 import { FormSection } from '@/components/ui/FormSection';
-import { Screen } from '@/components/ui/Screen';
 import { Body, DisplayTitle, ErrorMessage } from '@/components/ui/Typography';
 import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/modules/auth/auth-context';
@@ -56,13 +55,12 @@ export default function SignUpScreen() {
   }
 
   return (
-    <Screen contentStyle={styles.screen}>
-      <AppHeader logoWidth={124} />
+    <AuthGlassScreen longForm>
       <View style={styles.heading}>
         <DisplayTitle>Crea tu cuenta</DisplayTitle>
         <Body muted>Completa tus datos para comenzar.</Body>
       </View>
-      <FormSection label="Datos personales">
+      <FormSection label="Datos personales" plain>
         <FormField
           autoComplete="given-name"
           error={errors.firstName}
@@ -86,7 +84,7 @@ export default function SignUpScreen() {
           value={form.phone}
         />
       </FormSection>
-      <FormSection label="Cuenta">
+      <FormSection label="Cuenta" plain>
         <FormField
           autoCapitalize="none"
           autoComplete="email"
@@ -121,12 +119,11 @@ export default function SignUpScreen() {
         ¿Ya tienes una cuenta?{' '}
         <Link href="/(auth)/sign-in" style={styles.link}>Iniciar sesión</Link>
       </Text>
-    </Screen>
+    </AuthGlassScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.lg },
   heading: { gap: spacing.xs },
   accountPrompt: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
   link: { color: colors.primary, fontWeight: '700' },

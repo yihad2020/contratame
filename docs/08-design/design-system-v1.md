@@ -13,6 +13,10 @@ La interfaz busca sentirse cercana, confiable y profesional. La referencia princ
 
 La segunda refinación visual de UI-01 incorpora como referencia de calidad un ejemplo externo “Before → After”. Solo se adoptan sus principios de ritmo compacto, agrupación clara, bordes equilibrados y densidad móvil; no se reutilizan su contenido, navegación ni patrones propios del mercado inmobiliario.
 
+La tercera refinación visual suma fotografía boliviana exclusivamente en autenticación. El tratamiento conserva los formularios y la navegación existentes, y no introduce esperas en splash, hidratación o acceso a Home.
+
+La cuarta refinación convierte las dos pantallas de autenticación en una composición inmersiva: el slideshow cubre el fondo completo, con una capa azul oscuro para legibilidad y superficies blancas translúcidas para la marca y los formularios. La experiencia de registro prioriza el desplazamiento y el teclado por encima del efecto visual.
+
 ## 2. Activos de marca
 
 Los activos canónicos se conservan sin modificaciones destructivas:
@@ -20,8 +24,9 @@ Los activos canónicos se conservan sin modificaciones destructivas:
 - `apps/mobile/assets/images/brand/contratame-logo.png`: logotipo horizontal para cabeceras compactas, autenticación y momentos de marca.
 - `apps/mobile/assets/images/brand/contratame-bear.png`: mascota independiente para splash y estados introductorios seleccionados.
 - `apps/mobile/assets/images/brand/start-screen-reference.png`: referencia visual de dirección, no plantilla literal.
+- `apps/mobile/assets/images/bolivia/bolivia-01.png` a `bolivia-05.png`: fotografías locales aprobadas para el fondo rotativo de autenticación; no se modifican ni se descargan en tiempo de ejecución.
 
-Las imágenes usan dimensiones explícitas, `resizeMode="contain"` y proporciones consistentes para evitar distorsión o recorte.
+Los activos de marca usan dimensiones explícitas, `resizeMode="contain"` y proporciones consistentes. Las fotografías se presentan con `cover` en el fondo completo de Sign In y Sign Up, sin deformación; no se usan en rutas autenticadas.
 
 Evidencia de la implementación responsive web:
 
@@ -49,6 +54,9 @@ Además, ambas pantallas se revisaron con un viewport Android de 390 × 844 px. 
 | `green` | `#20C65A` | Acento de marca para proveedor/éxito. |
 | `background` | `#F7F9FC` | Fondo general. |
 | `surface` | `#FFFFFF` | Formularios y tarjetas. |
+| `authCard` | Blanco al 90 % | Superficie legible del formulario sobre fotografía. |
+| `authLogoSurface` | Blanco al 92 % | Separación del logotipo sobre fotografía. |
+| `authGlassBorder` | Blanco al 64 % | Contorno sutil de las superficies de autenticación. |
 | `text` | `#10233F` | Texto principal. |
 | `textSecondary` | `#667085` | Texto de apoyo. |
 | `border` | `#E4EAF1` | Divisores y contornos suaves. |
@@ -78,13 +86,16 @@ Los encabezados usan pesos 700–800; el cuerpo se mantiene en 16 px con interli
 - `AppIcon`: única puerta de entrada a Expo Symbols; usa símbolos outline equivalentes en iOS, Android y web.
 - `AppButton`: variantes primaria, secundaria, ghost y danger; separa `loading` de `disabled`.
 - `FormField`: etiqueta persistente, error en línea, ayuda opcional, estado de solo lectura y visibilidad de contraseña.
-- `Screen`: safe areas, teclado, desplazamiento y ancho de lectura consistente.
+- `Screen`: safe areas, teclado, desplazamiento y ancho de lectura consistente; admite un fondo decorativo opcional detrás del contenido sin alterar su uso normal.
 - `AppHeader`: variantes reutilizables de marca, navegación centrada y saludo personalizado.
 - `FormSection`: agrupa controles relacionados sobre una superficie suave con etiqueta compacta opcional.
 - `ChoiceCard`: entrada funcional de alto nivel con icono, título, descripción y affordance de navegación.
 - `StatusBadge`: estado compacto con texto, punto y color semántico.
 - `SectionHeader`: título de sección con una acción textual opcional.
 - `LoadingState`: hidratación de Auth con marca, sin barra ni porcentaje ficticio.
+- `BoliviaHeroSlideshow`: fondo fotográfico completo con dos capas locales, cambio cada 4,6 segundos y crossfade nativo de 700 ms, sin controles ni gestos.
+- `AuthGlassScreen`: composición compartida de Sign In y Sign Up: estado de barra claro, marca sobre una superficie pequeña y formulario en una tarjeta translúcida. La variante de registro mantiene la tarjeta arriba y desplazable.
+- `FormSection` permite una variante sin superficie interna para evitar tarjetas anidadas en los formularios de autenticación.
 
 Las rutas siguen siendo responsables de composición y estado local. Supabase, validaciones y reglas de acceso permanecen en sus módulos existentes.
 
@@ -106,6 +117,9 @@ No aparece en formularios, inicio, perfil ni estados de error/bloqueo. Podrá re
 - Campos con etiquetas visibles y tipos de teclado/autocompletado apropiados.
 - El estado de carga del botón no se confunde con un botón deshabilitado.
 - Safe areas y desplazamiento protegen contenido en pantallas pequeñas y con teclado visible.
+- Las fotografías del slideshow son decorativas y se excluyen del árbol de accesibilidad; el logotipo conserva una etiqueta descriptiva.
+- La animación se detiene cuando el sistema solicita reducción de movimiento y cuando la ruta pierde foco o desmonta.
+- Una capa azul oscuro al 48 % estabiliza la legibilidad del fondo; la tarjeta blanca al 90 % conserva el contraste de títulos, etiquetas, campos y acciones. El scroll y las safe areas continúan activos en ambas rutas.
 
 ## 10. Navegación
 
@@ -129,3 +143,4 @@ Home usa un encabezado personalizado compacto y reserva las tarjetas principales
 - Tabs muertos para búsqueda, trabajos, mensajes, reservas o trabajadores.
 - Colores de marca hardcodeados de forma dispersa.
 - Cambios de Auth, RLS, migraciones o reglas de negocio motivados solo por la presentación.
+- Carruseles interactivos, indicadores, flechas, gestos, parallax o dependencias de animación para fotografía decorativa.
