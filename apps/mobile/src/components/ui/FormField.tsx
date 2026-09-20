@@ -10,7 +10,7 @@ type FormFieldProps = Omit<TextInputProps, 'style'> & {
   helperText?: string;
 };
 
-export function FormField({ label, error, helperText, secureTextEntry = false, editable = true, ...inputProps }: FormFieldProps) {
+export function FormField({ label, error, helperText, secureTextEntry = false, editable = true, multiline = false, ...inputProps }: FormFieldProps) {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const canTogglePassword = secureTextEntry;
 
@@ -22,10 +22,11 @@ export function FormField({ label, error, helperText, secureTextEntry = false, e
           {...inputProps}
           accessibilityLabel={label}
           editable={editable}
+          multiline={multiline}
           placeholderTextColor={colors.textSecondary}
           secureTextEntry={secureTextEntry && !passwordVisible}
           selectionColor={colors.primary}
-          style={styles.input}
+          style={[styles.input, multiline && styles.multilineInput]}
         />
         {canTogglePassword ? (
           <Pressable
@@ -64,6 +65,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     ...typography.body,
   },
+  multilineInput: { minHeight: 112, paddingTop: spacing.md, textAlignVertical: 'top' },
   trailingAction: {
     width: sizing.touchTarget,
     minHeight: sizing.touchTarget,

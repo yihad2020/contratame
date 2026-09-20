@@ -86,3 +86,10 @@ La instalación y la validación visual en Expo Go no se fuerzan ni se eluden mi
 | `git diff --check` | Aprobada; solo advertencias informativas de conversión LF/CRLF. |
 
 No se hizo una captura visual nueva de dispositivo Android; el export web y las validaciones estáticas no sustituyen esa comprobación manual.
+
+## Quinta refinación visual — 2026-09-16
+
+- El slideshow cambia cada 7 segundos y usa un crossfade de 1,8 segundos con suavizado cúbico de entrada y salida. Sigue usando dos capas locales y el controlador de animación nativo.
+- Las superficies blancas del formulario y logotipo bajan a 82 % y 84 % de opacidad, respectivamente. Los campos conservan fondo opaco y el overlay oscuro no cambia, para mantener legibilidad.
+- No cambia el comportamiento de formularios, Auth, navegación, Supabase, `MOD-02` ni backend.
+- Validación: `npx tsc --noEmit`, `npm run lint`, `npm test -- --runInBand` (5 suites, 49 pruebas), `npx expo export --platform web` y `git diff --check` aprobados.

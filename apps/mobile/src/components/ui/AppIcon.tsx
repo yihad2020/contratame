@@ -14,10 +14,16 @@ export type AppIconName =
   | 'eyeOff'
   | 'home'
   | 'info'
+  | 'image'
   | 'lock'
+  | 'location'
   | 'logout'
   | 'mail'
+  | 'plus'
+  | 'send'
   | 'search'
+  | 'time'
+  | 'trash'
   | 'tools';
 
 const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web: AndroidSymbol }> = {
@@ -32,10 +38,16 @@ const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web:
   eyeOff: { ios: 'eye.slash', android: 'visibility_off', web: 'visibility_off' },
   home: { ios: 'house', android: 'home', web: 'home' },
   info: { ios: 'info.circle', android: 'info', web: 'info' },
+  image: { ios: 'photo', android: 'image', web: 'image' },
   lock: { ios: 'lock', android: 'lock', web: 'lock' },
+  location: { ios: 'location', android: 'location_on', web: 'location_on' },
   logout: { ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' },
   mail: { ios: 'envelope', android: 'mail', web: 'mail' },
+  plus: { ios: 'plus', android: 'add', web: 'add' },
+  send: { ios: 'paperplane', android: 'send', web: 'send' },
   search: { ios: 'magnifyingglass', android: 'search', web: 'search' },
+  time: { ios: 'clock', android: 'schedule', web: 'schedule' },
+  trash: { ios: 'trash', android: 'delete', web: 'delete' },
   tools: { ios: 'hammer', android: 'handyman', web: 'handyman' },
 };
 

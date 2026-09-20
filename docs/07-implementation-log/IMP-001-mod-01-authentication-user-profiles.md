@@ -58,3 +58,7 @@
 ## Pendiente fuera del alcance
 
 Recuperación/cambio de credenciales, avatar, administración de cuentas/roles, cierre global, trabajadores y demás módulos de marketplace. No se implementaron reglas para esas áreas.
+
+## Validación SQL posterior — 2026-09-17
+
+El antiguo script SQL estructural se convirtió en una suite pgTAP con `plan(18)`, 18 aserciones y `finish()`. Tras `npx supabase db reset --local`, `npx supabase test db` aprobó MOD-01 (18/18). Esta actualización afecta solo pruebas y documentación; la migración MOD-01 y sus controles de seguridad no cambiaron. Las limitaciones históricas de Docker anteriores no describen el entorno actual.

@@ -34,7 +34,21 @@
           "imageWidth": 160
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Contrátame! usa tu ubicación solo cuando eliges tu base de trabajo. No realiza seguimiento continuo."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Contrátame! necesita acceso a tus fotos para agregar ejemplos a tu portafolio.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

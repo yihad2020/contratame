@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   Animated,
+  Easing,
   StyleSheet,
   View,
   type ImageSourcePropType,
@@ -18,8 +19,9 @@ const slides: readonly ImageSourcePropType[] = [
   require('@/assets/images/bolivia/bolivia-05.png'),
 ];
 
-const slideIntervalMs = 4600;
-const crossfadeDurationMs = 700;
+const slideIntervalMs = 7000;
+const crossfadeDurationMs = 1800;
+const crossfadeEasing = Easing.inOut(Easing.cubic);
 
 export function BoliviaHeroSlideshow() {
   const [layerAIndex, setLayerAIndex] = useState(0);
@@ -67,11 +69,13 @@ export function BoliviaHeroSlideshow() {
         animation.current = Animated.parallel([
           Animated.timing(outgoingOpacity, {
             duration: crossfadeDurationMs,
+            easing: crossfadeEasing,
             toValue: 0,
             useNativeDriver: true,
           }),
           Animated.timing(incomingOpacity, {
             duration: crossfadeDurationMs,
+            easing: crossfadeEasing,
             toValue: 1,
             useNativeDriver: true,
           }),

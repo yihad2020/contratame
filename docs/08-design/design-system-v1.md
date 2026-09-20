@@ -54,8 +54,8 @@ Además, ambas pantallas se revisaron con un viewport Android de 390 × 844 px. 
 | `green` | `#20C65A` | Acento de marca para proveedor/éxito. |
 | `background` | `#F7F9FC` | Fondo general. |
 | `surface` | `#FFFFFF` | Formularios y tarjetas. |
-| `authCard` | Blanco al 90 % | Superficie legible del formulario sobre fotografía. |
-| `authLogoSurface` | Blanco al 92 % | Separación del logotipo sobre fotografía. |
+| `authCard` | Blanco al 82 % | Superficie legible del formulario sobre fotografía. |
+| `authLogoSurface` | Blanco al 84 % | Separación del logotipo sobre fotografía. |
 | `authGlassBorder` | Blanco al 64 % | Contorno sutil de las superficies de autenticación. |
 | `text` | `#10233F` | Texto principal. |
 | `textSecondary` | `#667085` | Texto de apoyo. |
@@ -93,7 +93,7 @@ Los encabezados usan pesos 700–800; el cuerpo se mantiene en 16 px con interli
 - `StatusBadge`: estado compacto con texto, punto y color semántico.
 - `SectionHeader`: título de sección con una acción textual opcional.
 - `LoadingState`: hidratación de Auth con marca, sin barra ni porcentaje ficticio.
-- `BoliviaHeroSlideshow`: fondo fotográfico completo con dos capas locales, cambio cada 4,6 segundos y crossfade nativo de 700 ms, sin controles ni gestos.
+- `BoliviaHeroSlideshow`: fondo fotográfico completo con dos capas locales, cambio cada 7 segundos y crossfade nativo suavizado de 1,8 segundos, sin controles ni gestos.
 - `AuthGlassScreen`: composición compartida de Sign In y Sign Up: estado de barra claro, marca sobre una superficie pequeña y formulario en una tarjeta translúcida. La variante de registro mantiene la tarjeta arriba y desplazable.
 - `FormSection` permite una variante sin superficie interna para evitar tarjetas anidadas en los formularios de autenticación.
 
@@ -119,7 +119,7 @@ No aparece en formularios, inicio, perfil ni estados de error/bloqueo. Podrá re
 - Safe areas y desplazamiento protegen contenido en pantallas pequeñas y con teclado visible.
 - Las fotografías del slideshow son decorativas y se excluyen del árbol de accesibilidad; el logotipo conserva una etiqueta descriptiva.
 - La animación se detiene cuando el sistema solicita reducción de movimiento y cuando la ruta pierde foco o desmonta.
-- Una capa azul oscuro al 48 % estabiliza la legibilidad del fondo; la tarjeta blanca al 90 % conserva el contraste de títulos, etiquetas, campos y acciones. El scroll y las safe areas continúan activos en ambas rutas.
+- Una capa azul oscuro al 48 % estabiliza la legibilidad del fondo; la tarjeta blanca al 82 % conserva el contraste de títulos, etiquetas, campos y acciones. Los campos mantienen superficie opaca. El scroll y las safe areas continúan activos en ambas rutas.
 
 ## 10. Navegación
 

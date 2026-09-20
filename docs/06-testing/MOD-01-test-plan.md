@@ -8,7 +8,7 @@
 ## 1. Estrategia
 
 - Unitarias Jest: normalización, validación, evaluación de acceso, frescura de confirmación y almacenamiento seguro nativo.
-- Base de datos: migración reproducible y script estructural ejecutable con `supabase test db`.
+- Base de datos: migración reproducible y suite pgTAP de 18 aserciones ejecutable con `supabase test db`.
 - Integración manual en Supabase de desarrollo: Auth, email, trigger, RLS y restauración real.
 - Estática: TypeScript, lint, Expo config, secretos y trazabilidad.
 
@@ -72,6 +72,8 @@ git diff --check
 ```
 
 `supabase test db` necesita Docker y una pila local iniciada. Si el ambiente no lo permite, debe figurar como no ejecutado y no como aprobado.
+
+**Evidencia 2026-09-17:** después de `npx supabase db reset --local`, la suite MOD-01 emitió un plan pgTAP válido y aprobó 18/18 aserciones. No se modificó la migración MOD-01.
 
 ## 5. Criterio de salida
 
