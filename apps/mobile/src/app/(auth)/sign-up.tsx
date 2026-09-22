@@ -57,6 +57,7 @@ export default function SignUpScreen() {
   return (
     <AuthGlassScreen longForm>
       <View style={styles.heading}>
+        <Text style={styles.eyebrow}>ÚNETE A CONTRÁTAME!</Text>
         <DisplayTitle>Crea tu cuenta</DisplayTitle>
         <Body muted>Completa tus datos para comenzar.</Body>
       </View>
@@ -125,6 +126,7 @@ export default function SignUpScreen() {
 
 const styles = StyleSheet.create({
   heading: { gap: spacing.xs },
+  eyebrow: { color: colors.primary, ...typography.overline },
   accountPrompt: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
   link: { color: colors.primary, fontWeight: '700' },
 });

@@ -2,11 +2,12 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
-import { AppHeader } from '@/components/ui/AppHeader';
 import { ChoiceCard } from '@/components/ui/ChoiceCard';
+import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
+import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
 import { Screen } from '@/components/ui/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
-import { ErrorMessage, Title } from '@/components/ui/Typography';
+import { ErrorMessage } from '@/components/ui/Typography';
 import { colors, radii, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/modules/auth/auth-context';
 import type { WorkerProfile } from '@/modules/worker/types';
@@ -56,18 +57,15 @@ export default function HomeScreen() {
   }
 
   return (
-    <Screen contentStyle={styles.screen}>
-      <AppHeader
+    <Screen contentStyle={styles.screen} footer={<MarketplaceNav active="home" />} header={<MarketplaceHeader
         action={{ label: 'Abrir mi perfil', icon: 'account', onPress: () => router.push('/(app)/profile') }}
-        greeting="Hola 👋"
-        name={profile?.first_name ?? 'Bienvenido'}
-        variant="personalized"
-      />
-      <View style={styles.intro}>
-        <Title>¿Qué quieres hacer hoy?</Title>
-        <Text style={styles.subtitle}>Explora talento local o administra tus servicios.</Text>
-      </View>
+        brand
+        eyebrow={`Hola, ${profile?.first_name ?? 'bienvenido'}`}
+        title="¿Qué quieres hacer hoy?"
+        subtitle="Servicios y oportunidades cerca de ti."
+      />}>
       <View style={styles.choices}>
+        <Text style={styles.sectionLabel}>TU PRÓXIMO PASO</Text>
         <ChoiceCard
           description="Encuentra profesionales cerca de ti."
           icon="search"
@@ -101,10 +99,9 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.lg },
-  intro: { gap: spacing.xs },
-  subtitle: { color: colors.textSecondary, fontSize: 15, lineHeight: 21 },
+  screen: { gap: spacing.xl, paddingTop: spacing.xl },
   choices: { gap: spacing.md },
+  sectionLabel: { color: colors.textSecondary, ...typography.overline },
   profileSection: { gap: spacing.xs, marginTop: spacing.xs },
   profileSurface: {
     gap: spacing.xs,

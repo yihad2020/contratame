@@ -83,7 +83,7 @@ export function ReviewStep() {
 
 const styles = StyleSheet.create({
   sections: { gap: spacing.sm },
-  section: { minHeight: 84, flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.lg },
+  section: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl },
   pressed: { backgroundColor: colors.surfaceMuted },
   icon: { width: 36, height: 36, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center' },
   completeIcon: { backgroundColor: colors.successSoft },

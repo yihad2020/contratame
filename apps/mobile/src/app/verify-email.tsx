@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
-import { BrandLogo } from '@/components/ui/BrandLogo';
+import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { Screen } from '@/components/ui/Screen';
 import { Body, DisplayTitle, ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
@@ -46,8 +46,8 @@ export default function VerifyEmailScreen() {
   if (!shouldShowEmailVerification(state)) return <Redirect href="/" />;
 
   return (
-    <Screen contentStyle={styles.screen}>
-      <BrandLogo width={150} />
+    <Screen contentStyle={styles.screen} header={<MarketplaceHeader brand eyebrow="SEGURIDAD DE TU CUENTA" title="Verifica tu correo" subtitle="Un paso más para comenzar." />}>
+      <View style={styles.card}>
       <View style={styles.stateIcon}>
         <AppIcon name="mail" size={sizing.iconLg} />
       </View>
@@ -75,12 +75,14 @@ export default function VerifyEmailScreen() {
           variant="ghost"
         />
       </View>
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.xl, paddingTop: spacing.xxl },
+  screen: { gap: spacing.xl, paddingTop: spacing.xl },
+  card: { gap: spacing.xl, padding: spacing.xl, backgroundColor: colors.surface, borderRadius: radii.xl, borderWidth: 1, borderColor: colors.border },
   stateIcon: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', borderRadius: radii.lg, backgroundColor: colors.primarySoft },
   heading: { gap: spacing.sm },
   email: { color: colors.text, ...typography.bodyStrong },

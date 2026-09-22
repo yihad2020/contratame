@@ -1,14 +1,14 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
-import { AppHeader } from '@/components/ui/AppHeader';
 import { AppIcon } from '@/components/ui/AppIcon';
+import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
+import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
 import { FormField } from '@/components/ui/FormField';
 import { FormSection } from '@/components/ui/FormSection';
 import { Screen } from '@/components/ui/Screen';
-import { Body, ErrorMessage, FeedbackMessage, Title } from '@/components/ui/Typography';
+import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/modules/auth/auth-context';
 import { validateProfileInput, type ValidationErrors } from '@/modules/auth/validation';
@@ -54,11 +54,13 @@ export default function ProfileScreen() {
   }
 
   return (
-    <Screen contentStyle={styles.screen}>
-      <AppHeader onBack={() => router.back()} title="Mi perfil" variant="navigation" />
-      <View style={styles.heading}>
-        <Title>Información personal</Title>
-        <Body muted>Mantén tus datos actualizados.</Body>
+    <Screen contentStyle={styles.screen} footer={<MarketplaceNav active="profile" />} header={<MarketplaceHeader brand title="Mi perfil" subtitle="Tu cuenta y datos personales" />}>
+      <View style={styles.summary}>
+        <View style={styles.avatar}><AppIcon color={colors.primary} name="account" size={30} /></View>
+        <View style={styles.summaryCopy}>
+          <Text style={styles.summaryName}>{profile ? `${profile.first_name} ${profile.last_name}` : 'Cuenta Contrátame!'}</Text>
+          <Text numberOfLines={1} style={styles.summaryEmail}>{user?.email}</Text>
+        </View>
       </View>
       <FormSection label="Cuenta">
         <View style={styles.metadataRow}>
@@ -116,8 +118,12 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.lg },
-  heading: { gap: spacing.xs },
+  screen: { gap: spacing.lg, paddingTop: spacing.xl },
+  summary: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface, padding: spacing.lg, borderRadius: radii.xl, borderWidth: 1, borderColor: colors.border },
+  avatar: { width: 58, height: 58, borderRadius: radii.pill, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  summaryCopy: { flex: 1, gap: spacing.xs },
+  summaryName: { color: colors.text, ...typography.section },
+  summaryEmail: { color: colors.textSecondary, ...typography.caption },
   metadataRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   metadataIcon: {
     width: 40,

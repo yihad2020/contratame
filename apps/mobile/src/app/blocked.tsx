@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
-import { BrandLogo } from '@/components/ui/BrandLogo';
+import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { Screen } from '@/components/ui/Screen';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Body, DisplayTitle } from '@/components/ui/Typography';
@@ -14,8 +14,8 @@ export default function BlockedScreen() {
   const suspended = state === 'suspended';
 
   return (
-    <Screen contentStyle={styles.screen}>
-      <BrandLogo width={150} />
+    <Screen contentStyle={styles.screen} header={<MarketplaceHeader brand eyebrow="ESTADO DE LA CUENTA" title="Acceso restringido" subtitle="La seguridad de tu cuenta es importante." />}>
+      <View style={styles.card}>
       <View style={styles.stateIcon}>
         <AppIcon name="lock" color={colors.danger} size={sizing.iconLg} />
       </View>
@@ -30,12 +30,14 @@ export default function BlockedScreen() {
         <Body muted>Tu identidad y perfil no se eliminan al cerrar esta sesión.</Body>
       </View>
       <AppButton icon="logout" label="Cerrar sesión" onPress={() => void signOut()} />
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.xl, paddingTop: spacing.xxl },
+  screen: { gap: spacing.xl, paddingTop: spacing.xl },
+  card: { gap: spacing.xl, padding: spacing.xl, backgroundColor: colors.surface, borderRadius: radii.xl, borderWidth: 1, borderColor: colors.border },
   stateIcon: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', borderRadius: radii.lg, backgroundColor: colors.dangerSoft },
   heading: { alignItems: 'flex-start', gap: spacing.md },
 });

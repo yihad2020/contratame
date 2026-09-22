@@ -28,7 +28,7 @@ export function AuthGlassScreen({ children, longForm = false }: PropsWithChildre
 }
 
 const styles = StyleSheet.create({
-  content: { gap: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.xl },
+  content: { gap: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.xxl },
   shortForm: { justifyContent: 'center' },
   longForm: { justifyContent: 'flex-start' },
   logoSurface: {
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.authLogoSurface,
     borderColor: colors.authGlassBorder,
     borderWidth: 1,
-    borderRadius: radii.xl,
+    borderRadius: radii.pill,
   },
   card: {
     gap: spacing.lg,
@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     shadowColor: colors.navy,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
     elevation: 2,
   },
   longCard: { padding: spacing.lg },

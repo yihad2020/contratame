@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
     borderRadius: radii.pill,
   },
-  selected: { backgroundColor: colors.primarySoft, borderColor: colors.primary },
+  selected: { backgroundColor: colors.primarySoft, borderColor: colors.primary, borderWidth: 1.5 },
   label: { color: colors.textSecondary, ...typography.label },
   selectedLabel: { color: colors.primary },
 });

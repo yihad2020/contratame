@@ -32,6 +32,7 @@ export default function SignInScreen() {
   return (
     <AuthGlassScreen>
       <View style={styles.heading}>
+        <Text style={styles.eyebrow}>TALENTO CERCA DE TI</Text>
         <DisplayTitle>Bienvenido de nuevo</DisplayTitle>
         <Body muted>Inicia sesión para continuar.</Body>
       </View>
@@ -72,6 +73,7 @@ export default function SignInScreen() {
 
 const styles = StyleSheet.create({
   heading: { gap: spacing.xs },
+  eyebrow: { color: colors.primary, ...typography.overline },
   accountPrompt: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
   link: { color: colors.primary, fontWeight: '700' },
 });
