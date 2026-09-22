@@ -1,0 +1,14 @@
+warning: in the working copy of 'apps/mobile/app.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/mobile/package-lock.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/mobile/package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/mobile/src/app/(app)/home.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/mobile/src/app/(auth)/sign-in.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/mobile/src/app/(auth)/sign-up.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/mobile/src/components/ui/AppIcon.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/mobile/src/components/ui/FormField.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/01-requirements/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/04-modules/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/06-testing/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/07-implementation-log/IMP-002-ui-01-brand-system-mobile-shell.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/07-implementation-log/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/08-design/design-system-v1.md', LF will be replaced by CRLF the next time Git touches it
