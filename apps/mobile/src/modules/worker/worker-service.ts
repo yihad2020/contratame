@@ -46,9 +46,14 @@ export async function loadWorkerDraft(worker?: WorkerProfile): Promise<WorkerDra
   ]);
   const firstError = [categoriesResult.error, servicesResult.error, locationResult.error, availabilityResult.error, portfolioResult.error].find(Boolean);
   if (firstError) throw firstError;
+  const rejectionResult = ownWorker.approval_status === 'rejected'
+    ? await supabase.from('worker_approval_requests').select('rejection_reason').eq('worker_id', ownWorker.id).eq('status', 'rejected').order('submitted_at', { ascending: false }).limit(1).maybeSingle()
+    : { data: null, error: null };
+  if (rejectionResult.error) throw rejectionResult.error;
   const portfolio = await addPortfolioPreviewUrls((portfolioResult.data ?? []) as WorkerPortfolioItem[]);
   return {
     worker: ownWorker,
+    latestRejectionReason: rejectionResult.data?.rejection_reason ?? null,
     categories: (categoriesResult.data ?? []) as ServiceCategory[],
     services: (servicesResult.data ?? []) as WorkerService[],
     location: parseWorkerLocation(locationResult.data as Omit<WorkerLocation, 'latitude' | 'longitude'> | null),

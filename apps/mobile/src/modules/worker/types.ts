@@ -72,6 +72,7 @@ export type WorkerPortfolioItem = {
 
 export type WorkerDraft = {
   worker: WorkerProfile;
+  latestRejectionReason: string | null;
   categories: ServiceCategory[];
   services: WorkerService[];
   location: WorkerLocation | null;

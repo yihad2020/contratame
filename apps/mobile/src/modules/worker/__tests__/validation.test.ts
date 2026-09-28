@@ -105,6 +105,7 @@ describe('MOD-02 worker validation', () => {
 function completeDraft(): WorkerDraft {
   return {
     worker: { id: 'worker', profile_id: 'profile', bio: 'a'.repeat(40), years_experience: 0, approval_status: 'draft', created_at: '', updated_at: '' },
+    latestRejectionReason: null,
     categories: [{ id: 'category', name: 'Electricidad', slug: 'electricidad', icon_key: null, active: true, sort_order: 1 }],
     services: [{ id: 'service', worker_id: 'worker', category_id: 'category', title: 'Instalación', description: 'Descripción suficientemente larga.', pricing_type: 'quote', price_bob: null, active: true, created_at: '', updated_at: '' }],
     location: { worker_id: 'worker', private_location: {}, public_location: null, public_area_label: 'Centro', city: 'Santa Cruz de la Sierra', department: 'Santa Cruz', country_code: 'BO', service_radius_m: 10000, updated_at: '', latitude: -17.78, longitude: -63.18 },
