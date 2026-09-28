@@ -42,6 +42,12 @@ export function WorkerStatusScreen() {
         <Text style={styles.body}>{copy.body}</Text>
         {editable ? <AppButton label={status === 'rejected' ? 'Corregir mi perfil' : 'Continuar mi perfil'} onPress={() => router.replace('/(app)/worker-onboarding/step/1' as never)} /> : null}
       </View>
+      {status === 'rejected' && draft.latestRejectionReason ? (
+        <View style={styles.rejectionCard}>
+          <Text style={styles.rejectionLabel}>MOTIVO DE LA REVISIÓN</Text>
+          <Text style={styles.rejectionText}>{draft.latestRejectionReason}</Text>
+        </View>
+      ) : null}
       {draft.worker.bio ? (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Sobre mi trabajo</Text>
@@ -106,6 +112,9 @@ const styles = StyleSheet.create({
   icon: { width: 60, height: 60, borderRadius: radii.lg, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.navy, ...typography.title },
   body: { color: colors.textSecondary, ...typography.body },
+  rejectionCard: { gap: spacing.sm, padding: spacing.lg, backgroundColor: colors.dangerSoft, borderWidth: 1, borderColor: colors.danger, borderRadius: radii.xl },
+  rejectionLabel: { color: colors.danger, ...typography.overline },
+  rejectionText: { color: colors.text, ...typography.body },
   section: { gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl },
   sectionTitle: { color: colors.navy, ...typography.section },
   detailRow: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm },
