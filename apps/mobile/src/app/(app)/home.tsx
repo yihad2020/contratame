@@ -52,10 +52,6 @@ export default function HomeScreen() {
     } finally { startingWorkerRef.current = false; setStartingWorker(false); }
   }
 
-  function showComingSoon(feature: string) {
-    Alert.alert('Próximamente', feature + ' estará disponible en una siguiente etapa de Contrátame!.');
-  }
-
   return (
     <Screen contentStyle={styles.screen} footer={<MarketplaceNav active="home" />} header={<MarketplaceHeader
         action={{ label: 'Abrir mi perfil', icon: 'account', onPress: () => router.push('/(app)/profile') }}
@@ -69,7 +65,7 @@ export default function HomeScreen() {
         <ChoiceCard
           description="Encuentra profesionales cerca de ti."
           icon="search"
-          onPress={() => showComingSoon('La búsqueda de profesionales')}
+          onPress={() => router.push('/(app)/explore' as never)}
           title="Necesito un servicio"
         />
         <ChoiceCard
