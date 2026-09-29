@@ -8,6 +8,7 @@ Esta sección contiene la estrategia, los casos de prueba y la evidencia de vali
 - `MOD-02-test-plan.md` — Plan de pruebas para `MOD-02 — Perfil profesional y onboarding del trabajador`.
 - `MOD-03-test-plan.md` — Plan de pruebas para `MOD-03 — Aprobación administrativa de trabajadores`.
 - `MOD-04-test-plan.md` — Plan y cierre de pruebas de `MOD-04 — Marketplace / Explorar`, completo y validado.
+- `MOD-05-test-plan.md` — Plan de pruebas de `MOD-05 — Perfil público del trabajador`.
 
 ## Convención inicial
 
@@ -17,3 +18,4 @@ Esta sección contiene la estrategia, los casos de prueba y la evidencia de vali
 - `MOD-02` utiliza `TEST-026..TEST-053`; sus resultados se registran en `IMP-003`.
 - `MOD-03` utiliza `TEST-054..TEST-079`; sus resultados se registran en `IMP-005`.
 - `MOD-04` utiliza `TEST-080..TEST-109`; sus resultados se registran en `IMP-006`.
+- `MOD-05` utiliza `TEST-110..TEST-139`; sus resultados se registran en `IMP-007`.
