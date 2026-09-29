@@ -38,7 +38,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Contrátame! usa tu ubicación solo cuando eliges tu base de trabajo. No realiza seguimiento continuo."
+          "locationWhenInUsePermission": "Contrátame! usa tu ubicación solo cuando la solicitas para buscar profesionales o elegir tu base de trabajo. No realiza seguimiento continuo."
         }
       ],
       [

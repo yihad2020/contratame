@@ -7,3 +7,4 @@
 - `IMP-003-mod-02-worker-profile-onboarding.md` — Primera implementación de `MOD-02`.
 - `IMP-004-ui-02-screen-redesign.md` — Rediseño visual `UI-02` de pantallas existentes.
 - `IMP-005-mod-03-admin-worker-approval.md` — Primera implementación de `MOD-03`.
+- `IMP-006-mod-04-marketplace-search.md` — Primera implementación de `MOD-04`, completa y validada.

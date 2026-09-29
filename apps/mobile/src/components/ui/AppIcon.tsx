@@ -12,6 +12,7 @@ export type AppIconName =
   | 'error'
   | 'eye'
   | 'eyeOff'
+  | 'filter'
   | 'home'
   | 'info'
   | 'image'
@@ -20,6 +21,7 @@ export type AppIconName =
   | 'logout'
   | 'mail'
   | 'plus'
+  | 'refresh'
   | 'send'
   | 'search'
   | 'time'
@@ -36,6 +38,7 @@ const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web:
   error: { ios: 'exclamationmark.triangle', android: 'error', web: 'error' },
   eye: { ios: 'eye', android: 'visibility', web: 'visibility' },
   eyeOff: { ios: 'eye.slash', android: 'visibility_off', web: 'visibility_off' },
+  filter: { ios: 'line.3.horizontal.decrease', android: 'filter_list', web: 'filter_list' },
   home: { ios: 'house', android: 'home', web: 'home' },
   info: { ios: 'info.circle', android: 'info', web: 'info' },
   image: { ios: 'photo', android: 'image', web: 'image' },
@@ -44,6 +47,7 @@ const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web:
   logout: { ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' },
   mail: { ios: 'envelope', android: 'mail', web: 'mail' },
   plus: { ios: 'plus', android: 'add', web: 'add' },
+  refresh: { ios: 'arrow.clockwise', android: 'refresh', web: 'refresh' },
   send: { ios: 'paperplane', android: 'send', web: 'send' },
   search: { ios: 'magnifyingglass', android: 'search', web: 'search' },
   time: { ios: 'clock', android: 'schedule', web: 'schedule' },

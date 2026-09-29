@@ -141,8 +141,8 @@ Ejemplos previstos:
 - `MOD-01 — Autenticación`
 - `MOD-02 — Perfiles de trabajadores`
 - `MOD-03 — Aprobación administrativa`
-- `MOD-04 — Certificación`
-- `MOD-05 — Servicios`
+- `MOD-04 — Marketplace / Explorar`
+- `MOD-05 — Perfil público del trabajador`
 - `MOD-06 — Geolocalización`
 - `MOD-07 — Solicitudes`
 - `MOD-08 — Cotizaciones`
