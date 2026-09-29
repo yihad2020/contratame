@@ -42,7 +42,12 @@ select is((select public from storage.buckets where id = 'worker-portfolio'), fa
 select is((select file_size_limit from storage.buckets where id = 'worker-portfolio'), 10485760::bigint,
   'portfolio bucket limits files to 10 MiB');
 select is((select count(*)::integer from pg_policies where schemaname = 'storage'
-  and tablename = 'objects' and policyname like 'worker_portfolio_objects_%'), 4,
+  and tablename = 'objects' and policyname in (
+    'worker_portfolio_objects_select_owner_or_admin',
+    'worker_portfolio_objects_insert_owner_editable',
+    'worker_portfolio_objects_update_owner_editable',
+    'worker_portfolio_objects_delete_owner_editable'
+  )), 4,
   'four owner/state Storage policies exist');
 select ok((select count(*) from public.service_categories where active) >= 8,
   'initial active service categories are seeded');

@@ -370,3 +370,11 @@ No se considerará completa una implementación significativa si deja desactuali
 - Bitácora de implementación.
 
 El objetivo es evitar documentar retrospectivamente seis meses de desarrollo al finalizar el proyecto.
+
+## Módulos implementados o en implementación
+
+- `MOD-01` — Autenticación y perfiles de usuario.
+- `MOD-02` — Perfil profesional y onboarding del trabajador.
+- `MOD-03` — Aprobación administrativa de trabajadores.
+- `MOD-04` — Marketplace / Explorar.
+- `MOD-05` — Perfil público del trabajador, implementación `IMP-007`.

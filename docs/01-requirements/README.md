@@ -8,6 +8,7 @@ Esta sección contiene los requisitos funcionales (`RF-XXX`), requisitos no func
 - `mod-02-worker-profile-onboarding.md` — Requisitos de `MOD-02 — Perfil profesional y onboarding del trabajador`.
 - `mod-03-admin-worker-approval.md` — Requisitos de `MOD-03 — Aprobación administrativa de trabajadores`.
 - `mod-04-marketplace-search.md` — Requisitos completos y validados de `MOD-04 — Marketplace / Explorar`.
+- `mod-05-public-worker-profile.md` — Requisitos de `MOD-05 — Perfil público del trabajador`.
 
 ## Identificadores asignados
 
@@ -20,3 +21,5 @@ Los identificadores no deben reutilizarse para requisitos diferentes en módulos
 MOD-03 continúa con requisitos funcionales `RF-023` a `RF-030` y no funcionales `RNF-015` a `RNF-020`.
 
 MOD-04 continúa con requisitos funcionales `RF-031` a `RF-041` y no funcionales `RNF-021` a `RNF-027`.
+
+MOD-05 continúa con requisitos funcionales `RF-042` a `RF-048` y no funcionales `RNF-028` a `RNF-032`.
