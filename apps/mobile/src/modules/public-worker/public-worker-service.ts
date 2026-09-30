@@ -6,6 +6,7 @@ import {
 } from '@/modules/public-worker/public-worker-model';
 import type {
   PortfolioSignedUrl,
+  PublicWorkerProfile,
   PublicWorkerProfileLoad,
   PublicWorkerProfileRpcRow,
 } from '@/modules/public-worker/types';
@@ -13,7 +14,7 @@ import type {
 const PORTFOLIO_BUCKET = 'worker-portfolio';
 const SIGNED_URL_TTL_SECONDS = 300;
 
-export async function loadPublicWorkerProfile(workerId: string): Promise<PublicWorkerProfileLoad | null> {
+export async function loadPublicWorkerRequestContext(workerId: string): Promise<PublicWorkerProfile | null> {
   const normalizedWorkerId = normalizePublicWorkerId(workerId);
   if (!normalizedWorkerId) return null;
 
@@ -23,7 +24,13 @@ export async function loadPublicWorkerProfile(workerId: string): Promise<PublicW
   if (error) throw error;
   if (!data) return null;
 
-  const profile = normalizePublicWorkerProfile(data as PublicWorkerProfileRpcRow);
+  return normalizePublicWorkerProfile(data as PublicWorkerProfileRpcRow);
+}
+
+export async function loadPublicWorkerProfile(workerId: string): Promise<PublicWorkerProfileLoad | null> {
+  const profile = await loadPublicWorkerRequestContext(workerId);
+  if (!profile) return null;
+
   if (profile.portfolio.length === 0) return { profile, portfolioImageWarning: false };
 
   const paths = profile.portfolio.map((item) => item.storage_path);

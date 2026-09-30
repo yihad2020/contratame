@@ -22,6 +22,7 @@ export type AppIconName =
   | 'mail'
   | 'plus'
   | 'refresh'
+  | 'requests'
   | 'send'
   | 'search'
   | 'time'
@@ -48,6 +49,7 @@ const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web:
   mail: { ios: 'envelope', android: 'mail', web: 'mail' },
   plus: { ios: 'plus', android: 'add', web: 'add' },
   refresh: { ios: 'arrow.clockwise', android: 'refresh', web: 'refresh' },
+  requests: { ios: 'doc.text', android: 'description', web: 'description' },
   send: { ios: 'paperplane', android: 'send', web: 'send' },
   search: { ios: 'magnifyingglass', android: 'search', web: 'search' },
   time: { ios: 'clock', android: 'schedule', web: 'schedule' },
