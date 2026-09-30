@@ -9,5 +9,6 @@ Esta sección documenta el objetivo, alcance, responsabilidades, reglas, datos, 
 - `MOD-03-admin-worker-approval.md` — `MOD-03 — Aprobación administrativa de trabajadores`, implementación `IMP-005`.
 - `MOD-04-marketplace-search.md` — `MOD-04 — Marketplace / Explorar`, implementación `IMP-006`, completo y validado.
 - `MOD-05-public-worker-profile.md` — `MOD-05 — Perfil público del trabajador`, implementación `IMP-007`.
+- `MOD-06-service-requests.md` — `MOD-06 — Solicitudes directas de servicio`, implementación `IMP-008`.
 
 Cada implementación significativa deberá enlazar su módulo con requisitos `RF-XXX`/`RNF-XXX`, pruebas `TEST-XXX` y un registro `IMP-XXX`.

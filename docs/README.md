@@ -143,13 +143,12 @@ Ejemplos previstos:
 - `MOD-03 — Aprobación administrativa`
 - `MOD-04 — Marketplace / Explorar`
 - `MOD-05 — Perfil público del trabajador`
-- `MOD-06 — Geolocalización`
-- `MOD-07 — Solicitudes`
-- `MOD-08 — Cotizaciones`
-- `MOD-09 — Reservas`
-- `MOD-10 — Chat`
-- `MOD-11 — Calificaciones`
-- `MOD-12 — Administración`
+- `MOD-06 — Solicitudes directas de servicio`
+- `MOD-07 — Cotizaciones`
+- `MOD-08 — Reservas`
+- `MOD-09 — Chat`
+- `MOD-10 — Calificaciones`
+- `MOD-11 — Administración`
 
 La numeración definitiva podrá cambiar conforme se formalice la arquitectura.
 
@@ -378,3 +377,4 @@ El objetivo es evitar documentar retrospectivamente seis meses de desarrollo al 
 - `MOD-03` — Aprobación administrativa de trabajadores.
 - `MOD-04` — Marketplace / Explorar.
 - `MOD-05` — Perfil público del trabajador, implementación `IMP-007`.
+- `MOD-06` — Solicitudes directas de servicio, implementación `IMP-008`.

@@ -158,6 +158,11 @@ function ReadyProfile({ value }: { value: PublicWorkerProfileLoad }) {
           </ScrollView>
         ) : <Text style={styles.muted}>Este profesional todavía no publicó trabajos en su portafolio.</Text>}
       </Section>
+      <AppButton
+        icon="send"
+        label="Solicitar servicio"
+        onPress={() => router.push({ pathname: '/(app)/worker/[workerId]/request', params: { workerId: profile.worker_id } } as never)}
+      />
     </>
   );
 }
