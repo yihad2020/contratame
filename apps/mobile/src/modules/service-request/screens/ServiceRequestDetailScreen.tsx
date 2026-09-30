@@ -9,6 +9,7 @@ import { Screen } from '@/components/ui/Screen';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { QuotePanel } from '@/modules/quote/components/QuotePanel';
 import { serviceRequestFailureMessage } from '@/modules/service-request/service-request-errors';
 import {
   formatRequestDate,
@@ -51,7 +52,9 @@ export function ServiceRequestDetailScreen({ requestIdParam }: { requestIdParam:
       {state.kind === 'loading' ? <View accessibilityRole="progressbar" style={styles.state}><ActivityIndicator color={colors.primary} /><Text style={styles.muted}>Cargando solicitud…</Text></View> : null}
       {state.kind === 'unavailable' ? <UnavailableDetail /> : null}
       {state.kind === 'error' ? <View style={styles.state}><ErrorMessage>{state.message}</ErrorMessage><AppButton label="Reintentar" onPress={() => { setState({ kind: 'loading' }); setAttempt((value) => value + 1); }} /></View> : null}
-      {state.kind === 'ready' ? <ReadyDetail detail={state.detail} /> : null}
+      {state.kind === 'ready' ? (
+        <ReadyDetail detail={state.detail} onRequestChanged={() => setAttempt((value) => value + 1)} />
+      ) : null}
     </Screen>
   );
 }
@@ -66,7 +69,7 @@ function UnavailableDetail() {
   );
 }
 
-function ReadyDetail({ detail }: { detail: ServiceRequestDetail }) {
+function ReadyDetail({ detail, onRequestChanged }: { detail: ServiceRequestDetail; onRequestChanged: () => void }) {
   const counterpart = detail.perspective === 'customer' ? detail.worker_display_name : detail.customer_display_name;
   return (
     <>
@@ -90,7 +93,7 @@ function ReadyDetail({ detail }: { detail: ServiceRequestDetail }) {
 
       <DetailSection title="Ubicación">
         <DetailRow label="Zona del trabajo" value={detail.job_area_label} />
-        {detail.perspective === 'customer' ? (
+        {detail.perspective === 'customer' || (detail.exact_latitude !== null && detail.exact_longitude !== null) ? (
           <>
             <DetailRow label="Dirección exacta privada" value={detail.address_text ?? 'No indicada'} />
             <DetailRow label="Coordenadas privadas" value={detail.exact_latitude !== null && detail.exact_longitude !== null
@@ -98,13 +101,13 @@ function ReadyDetail({ detail }: { detail: ServiceRequestDetail }) {
               : 'No disponibles'} />
           </>
         ) : (
-          <FeedbackMessage tone="info">Antes de un booking puedes ver la zona general, pero no la dirección ni las coordenadas exactas.</FeedbackMessage>
+          <FeedbackMessage tone="info">Antes de una contratación puedes ver la zona general, pero no la dirección ni las coordenadas exactas.</FeedbackMessage>
         )}
       </DetailSection>
 
-      {detail.status === 'pending' ? (
-        <FeedbackMessage tone="info">La cotización y sus revisiones se habilitarán en MOD-07. Esta pantalla no cambia el estado de la solicitud.</FeedbackMessage>
-      ) : null}
+      <DetailSection title="Propuesta y contratación">
+        <QuotePanel detail={detail} onRequestChanged={onRequestChanged} />
+      </DetailSection>
     </>
   );
 }

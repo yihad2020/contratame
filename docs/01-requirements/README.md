@@ -10,6 +10,7 @@ Esta sección contiene los requisitos funcionales (`RF-XXX`), requisitos no func
 - `mod-04-marketplace-search.md` — Requisitos completos y validados de `MOD-04 — Marketplace / Explorar`.
 - `mod-05-public-worker-profile.md` — Requisitos de `MOD-05 — Perfil público del trabajador`.
 - `mod-06-service-requests.md` — Requisitos de `MOD-06 — Solicitudes directas de servicio`.
+- `mod-07-quotes.md` — Requisitos de `MOD-07 — Cotizaciones, revisiones y aceptación`.
 
 ## Identificadores asignados
 
@@ -26,3 +27,5 @@ MOD-04 continúa con requisitos funcionales `RF-031` a `RF-041` y no funcionales
 MOD-05 continúa con requisitos funcionales `RF-042` a `RF-048` y no funcionales `RNF-028` a `RNF-032`.
 
 MOD-06 continúa con requisitos funcionales `RF-049` a `RF-057` y no funcionales `RNF-033` a `RNF-038`.
+
+MOD-07 continúa con requisitos funcionales `RF-058` a `RF-066` y no funcionales `RNF-039` a `RNF-043`.
