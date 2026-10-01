@@ -164,6 +164,7 @@ describe('MOD-06 service request model', () => {
       exact_latitude: '-17.78',
       exact_longitude: '-63.18',
       address_text: 'Calle 8',
+      booking_id: null,
     };
     const normalized = normalizeServiceRequestDetail(base);
     expect(normalized.exact_latitude).toBe(-17.78);

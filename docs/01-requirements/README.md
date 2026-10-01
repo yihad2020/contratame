@@ -11,6 +11,7 @@ Esta sección contiene los requisitos funcionales (`RF-XXX`), requisitos no func
 - `mod-05-public-worker-profile.md` — Requisitos de `MOD-05 — Perfil público del trabajador`.
 - `mod-06-service-requests.md` — Requisitos de `MOD-06 — Solicitudes directas de servicio`.
 - `mod-07-quotes.md` — Requisitos de `MOD-07 — Cotizaciones, revisiones y aceptación`.
+- `mod-08-booking-lifecycle.md` — Requisitos de `MOD-08 — Ciclo de vida de la contratación`.
 
 ## Identificadores asignados
 
@@ -29,3 +30,5 @@ MOD-05 continúa con requisitos funcionales `RF-042` a `RF-048` y no funcionales
 MOD-06 continúa con requisitos funcionales `RF-049` a `RF-057` y no funcionales `RNF-033` a `RNF-038`.
 
 MOD-07 continúa con requisitos funcionales `RF-058` a `RF-066` y no funcionales `RNF-039` a `RNF-043`.
+
+MOD-08 continúa con requisitos funcionales `RF-067` a `RF-075` y no funcionales `RNF-044` a `RNF-048`.

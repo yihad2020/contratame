@@ -105,6 +105,17 @@ function ReadyDetail({ detail, onRequestChanged }: { detail: ServiceRequestDetai
         )}
       </DetailSection>
 
+      {detail.booking_id ? (
+        <DetailSection title="Trabajo contratado">
+          <FeedbackMessage tone="success">La cotización fue aceptada y esta solicitud ya tiene un trabajo programado.</FeedbackMessage>
+          <AppButton
+            label="Ver trabajo"
+            icon="briefcase"
+            onPress={() => router.push({ pathname: '/(app)/booking/[bookingId]', params: { bookingId: detail.booking_id } } as never)}
+          />
+        </DetailSection>
+      ) : null}
+
       <DetailSection title="Propuesta y contratación">
         <QuotePanel detail={detail} onRequestChanged={onRequestChanged} />
       </DetailSection>

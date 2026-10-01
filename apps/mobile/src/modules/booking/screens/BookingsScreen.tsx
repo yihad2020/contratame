@@ -10,24 +10,20 @@ import { Screen } from '@/components/ui/Screen';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ErrorMessage } from '@/components/ui/Typography';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
-import { serviceRequestFailureMessage } from '@/modules/service-request/service-request-errors';
+import { bookingFailureMessage } from '@/modules/booking/booking-errors';
 import {
-  formatRequestDate,
-  mergeServiceRequestPages,
-  serviceRequestStatusLabels,
-} from '@/modules/service-request/service-request-model';
-import {
-  listMyServiceRequests,
-} from '@/modules/service-request/service-request-service';
-import type {
-  ServiceRequestListItem,
-  ServiceRequestPerspective,
-  ServiceRequestStatus,
-} from '@/modules/service-request/types';
+  bookingStatusLabels,
+  formatBookingAmount,
+  formatBookingDateTime,
+  mergeBookingPages,
+} from '@/modules/booking/booking-model';
+import { listMyBookings } from '@/modules/booking/booking-service';
+import type { BookingListItem, BookingStatus } from '@/modules/booking/types';
+import type { ServiceRequestPerspective } from '@/modules/service-request/types';
 
-export function ServiceRequestsScreen() {
+export function BookingsScreen() {
   const [perspective, setPerspective] = useState<ServiceRequestPerspective>('customer');
-  const [items, setItems] = useState<ServiceRequestListItem[]>([]);
+  const [items, setItems] = useState<BookingListItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingPage, setLoadingPage] = useState(false);
@@ -37,16 +33,15 @@ export function ServiceRequestsScreen() {
 
   const load = useCallback(async (currentPerspective: ServiceRequestPerspective, offset: number, reset: boolean) => {
     const request = ++requestRef.current;
-    if (reset) { setLoading(true); setFailure(null); }
-    else { setLoadingPage(true); setPageFailure(null); }
+    if (reset) { setLoading(true); setFailure(null); } else { setLoadingPage(true); setPageFailure(null); }
     try {
-      const next = await listMyServiceRequests(currentPerspective, offset);
+      const next = await listMyBookings(currentPerspective, offset);
       if (request !== requestRef.current) return;
-      setItems((current) => reset ? next : mergeServiceRequestPages(current, next));
+      setItems((current) => reset ? next : mergeBookingPages(current, next));
       setTotalCount((current) => next[0]?.total_count ?? (reset ? 0 : current));
     } catch (cause) {
       if (request !== requestRef.current) return;
-      const message = serviceRequestFailureMessage(cause);
+      const message = bookingFailureMessage(cause);
       if (reset) setFailure(message); else setPageFailure(message);
     } finally {
       if (request === requestRef.current) {
@@ -74,34 +69,23 @@ export function ServiceRequestsScreen() {
     <Screen
       contentStyle={styles.screen}
       footer={<MarketplaceNav active="requests" />}
-      header={<MarketplaceHeader brand title="Solicitudes" subtitle="Consulta solicitudes enviadas y recibidas." />}
+      header={<MarketplaceHeader back={() => router.back()} eyebrow="SOLICITUDES" title="Mis trabajos" subtitle="Contrataciones programadas y su estado actual." />}
     >
       <View accessibilityRole="tablist" style={styles.switcher}>
         <PerspectiveButton active={perspective === 'customer'} label="Como cliente" onPress={() => changePerspective('customer')} />
         <PerspectiveButton active={perspective === 'worker'} label="Como profesional" onPress={() => changePerspective('worker')} />
       </View>
-      <AppButton
-        label="Ver mis trabajos contratados"
-        icon="briefcase"
-        variant="secondary"
-        onPress={() => router.push('/(app)/bookings' as never)}
-      />
-      {!loading && !failure ? <Text style={styles.count}>{totalCount} solicitud{totalCount === 1 ? '' : 'es'}</Text> : null}
-      {loading && items.length === 0 ? <View style={styles.loading}><ActivityIndicator color={colors.primary} /><Text style={styles.muted}>Cargando solicitudes…</Text></View> : null}
+      {!loading && !failure ? <Text style={styles.count}>{totalCount} trabajo{totalCount === 1 ? '' : 's'}</Text> : null}
+      {loading && items.length === 0 ? <View style={styles.loading}><ActivityIndicator color={colors.primary} /><Text style={styles.muted}>Cargando trabajos…</Text></View> : null}
       {failure ? <View style={styles.feedback}><ErrorMessage>{failure}</ErrorMessage><AppButton label="Reintentar" onPress={() => void load(perspective, 0, true)} /></View> : null}
       {!loading && !failure && items.length === 0 ? (
         <View style={styles.empty}>
           <View style={styles.emptyIcon}><AppIcon name="briefcase" color={colors.primary} size={sizing.iconLg} /></View>
-          <Text style={styles.emptyTitle}>{perspective === 'customer' ? 'Aún no enviaste solicitudes' : 'Aún no recibiste solicitudes'}</Text>
-          <Text style={styles.muted}>{perspective === 'customer'
-            ? 'Explora profesionales aprobados y solicita uno de sus servicios activos.'
-            : 'Las solicitudes dirigidas a tu perfil profesional aparecerán aquí.'}</Text>
-          {perspective === 'customer' ? <AppButton label="Explorar profesionales" onPress={() => router.push('/(app)/explore' as never)} /> : null}
+          <Text style={styles.emptyTitle}>Aún no tienes trabajos contratados</Text>
+          <Text style={styles.muted}>Aparecerán aquí después de aceptar una cotización.</Text>
         </View>
       ) : null}
-      <View style={styles.list}>
-        {items.map((item) => <RequestCard key={item.request_id} item={item} />)}
-      </View>
+      <View style={styles.list}>{items.map((item) => <BookingCard key={item.booking_id} item={item} />)}</View>
       {pageFailure ? <View style={styles.feedback}><ErrorMessage>{pageFailure}</ErrorMessage><AppButton label="Reintentar página" variant="secondary" onPress={() => void load(perspective, items.length, false)} /></View> : null}
       {hasMore ? <AppButton label="Cargar más" variant="secondary" loading={loadingPage} onPress={() => void load(perspective, items.length, false)} /> : null}
     </Screen>
@@ -116,11 +100,11 @@ function PerspectiveButton({ active, label, onPress }: { active: boolean; label:
   );
 }
 
-function RequestCard({ item }: { item: ServiceRequestListItem }) {
+function BookingCard({ item }: { item: BookingListItem }) {
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={() => router.push({ pathname: '/(app)/request/[requestId]', params: { requestId: item.request_id } } as never)}
+      onPress={() => router.push({ pathname: '/(app)/booking/[bookingId]', params: { bookingId: item.booking_id } } as never)}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={styles.cardTop}>
@@ -128,20 +112,19 @@ function RequestCard({ item }: { item: ServiceRequestListItem }) {
           <Text style={styles.service}>{item.service_title}</Text>
           <Text style={styles.counterpart}>{item.perspective === 'customer' ? 'Profesional' : 'Cliente'}: {item.counterpart_display_name}</Text>
         </View>
-        <StatusBadge label={serviceRequestStatusLabels[item.status]} tone={statusTone(item.status)} />
+        <StatusBadge label={bookingStatusLabels[item.booking_status]} tone={statusTone(item.booking_status)} />
       </View>
-      <Text numberOfLines={2} style={styles.description}>{item.description}</Text>
-      <View style={styles.metaRow}><AppIcon name="location" color={colors.textSecondary} size={sizing.iconSm} /><Text style={styles.meta}>{item.job_area_label}</Text></View>
-      <View style={styles.metaRow}><AppIcon name="time" color={colors.textSecondary} size={sizing.iconSm} /><Text style={styles.meta}>{formatRequestDate(item.preferred_date)}{item.preferred_time ? ` · ${item.preferred_time}` : ''}</Text></View>
-      <View style={styles.openRow}><Text style={styles.openLabel}>Ver detalle</Text><AppIcon name="chevronRight" size={sizing.iconSm} /></View>
+      <Text style={styles.price}>{formatBookingAmount(item.agreed_price_bob)}</Text>
+      <View style={styles.metaRow}><AppIcon name="time" color={colors.textSecondary} size={sizing.iconSm} /><Text style={styles.meta}>{formatBookingDateTime(item.scheduled_at)}</Text></View>
+      <View style={styles.openRow}><Text style={styles.openLabel}>Ver trabajo</Text><AppIcon name="chevronRight" size={sizing.iconSm} /></View>
     </Pressable>
   );
 }
 
-function statusTone(status: ServiceRequestStatus): 'success' | 'warning' | 'danger' {
-  if (status === 'pending') return 'warning';
-  if (status === 'quoted' || status === 'accepted') return 'success';
-  return 'danger';
+function statusTone(status: BookingStatus): 'success' | 'warning' | 'danger' {
+  if (status === 'completed') return 'success';
+  if (status === 'cancelled') return 'danger';
+  return 'warning';
 }
 
 const styles = StyleSheet.create({
@@ -165,7 +148,7 @@ const styles = StyleSheet.create({
   cardCopy: { flex: 1, gap: spacing.xs },
   service: { color: colors.navy, ...typography.section },
   counterpart: { color: colors.primary, ...typography.caption, fontWeight: '700' },
-  description: { color: colors.text, ...typography.body },
+  price: { color: colors.success, ...typography.bodyStrong },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   meta: { flex: 1, color: colors.textSecondary, ...typography.caption },
   openRow: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: spacing.xs, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm },

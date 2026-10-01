@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
@@ -35,19 +35,32 @@ export function QuotePanel({ detail, onRequestChanged }: QuotePanelProps) {
   const [failure, setFailure] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setFailure(null);
-    try {
-      setQuotes(await listMyServiceRequestQuotes(detail.request_id));
-    } catch (cause) {
-      setFailure(quoteFailureMessage(cause));
-    } finally {
-      setLoading(false);
-    }
-  }, [detail.request_id]);
-
-  useEffect(() => { void load(); }, [load, reloadKey]);
+  useEffect(() => {
+    let current = true;
+    void Promise.resolve()
+      .then(() => {
+        if (!current) return null;
+        setLoading(true);
+        setFailure(null);
+        return listMyServiceRequestQuotes(detail.request_id);
+      })
+      .then((loaded) => {
+        if (!current || !loaded) return;
+        const now = Date.now();
+        setQuotes(loaded.map((quote) => quote.quote_status === 'pending'
+          && quote.valid_until !== null
+          && new Date(quote.valid_until).getTime() <= now
+          ? { ...quote, quote_status: 'expired' as const }
+          : quote));
+      })
+      .catch((cause) => {
+        if (current) setFailure(quoteFailureMessage(cause));
+      })
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => { current = false; };
+  }, [detail.request_id, reloadKey]);
 
   const latest = currentQuote(quotes);
   const refreshAll = () => {
@@ -306,10 +319,7 @@ function CustomerAcceptance({
 }
 
 function QuoteCard({ quote }: { quote: QuoteRevision }) {
-  const isExpiredPending = quote.quote_status === 'pending'
-    && quote.valid_until !== null
-    && new Date(quote.valid_until).getTime() <= Date.now();
-  const visibleStatus: QuoteStatus = isExpiredPending ? 'expired' : quote.quote_status;
+  const visibleStatus: QuoteStatus = quote.quote_status;
   return (
     <View style={[styles.quoteCard, quote.is_current && styles.currentCard]}>
       <View style={styles.headingRow}>

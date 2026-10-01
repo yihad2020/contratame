@@ -100,6 +100,7 @@ export type ServiceRequestDetail = {
   exact_latitude: number | null;
   exact_longitude: number | null;
   address_text: string | null;
+  booking_id: string | null;
 };
 
 export type ServiceRequestDetailRpcRow = Omit<

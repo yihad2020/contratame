@@ -379,3 +379,4 @@ El objetivo es evitar documentar retrospectivamente seis meses de desarrollo al 
 - `MOD-05` — Perfil público del trabajador, implementación `IMP-007`.
 - `MOD-06` — Solicitudes directas de servicio, implementación `IMP-008`.
 - `MOD-07` — Cotizaciones, revisiones y aceptación, implementación `IMP-009`.
+- `MOD-08` — Ciclo de vida de la contratación, implementación `IMP-010`.
