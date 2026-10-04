@@ -10,6 +10,7 @@ import type {
   PublicWorkerProfileLoad,
   PublicWorkerProfileRpcRow,
 } from '@/modules/public-worker/types';
+import { getPublicWorkerReputation } from '@/modules/review/review-service';
 
 const PORTFOLIO_BUCKET = 'worker-portfolio';
 const SIGNED_URL_TTL_SECONDS = 300;
@@ -30,8 +31,14 @@ export async function loadPublicWorkerRequestContext(workerId: string): Promise<
 export async function loadPublicWorkerProfile(workerId: string): Promise<PublicWorkerProfileLoad | null> {
   const profile = await loadPublicWorkerRequestContext(workerId);
   if (!profile) return null;
+  const reputation = await getPublicWorkerReputation(profile.worker_id) ?? {
+    worker_id: profile.worker_id,
+    average_rating: null,
+    review_count: 0,
+    reviews: [],
+  };
 
-  if (profile.portfolio.length === 0) return { profile, portfolioImageWarning: false };
+  if (profile.portfolio.length === 0) return { profile, portfolioImageWarning: false, reputation };
 
   const paths = profile.portfolio.map((item) => item.storage_path);
   try {
@@ -43,9 +50,10 @@ export async function loadPublicWorkerProfile(workerId: string): Promise<PublicW
     return {
       profile: { ...profile, portfolio: attached.portfolio },
       portfolioImageWarning: attached.hasFailures,
+      reputation,
     };
   } catch (cause) {
     if (__DEV__) console.warn('[MOD-05] portfolio signed URLs unavailable', cause);
-    return { profile, portfolioImageWarning: true };
+    return { profile, portfolioImageWarning: true, reputation };
   }
 }

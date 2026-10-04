@@ -12,6 +12,7 @@ Esta sección contiene la estrategia, los casos de prueba y la evidencia de vali
 - `MOD-06-test-plan.md` — Plan de pruebas de `MOD-06 — Solicitudes directas de servicio`.
 - `MOD-07-test-plan.md` — Plan de pruebas de `MOD-07 — Cotizaciones, revisiones y aceptación`.
 - `MOD-08-test-plan.md` — Plan de pruebas de `MOD-08 — Ciclo de vida de la contratación`.
+- `MOD-09-test-plan.md` — Plan de pruebas de `MOD-09 — Reseñas`.
 
 ## Convención inicial
 
@@ -25,3 +26,4 @@ Esta sección contiene la estrategia, los casos de prueba y la evidencia de vali
 - `MOD-06` utiliza `TEST-140..TEST-179`; sus resultados se registran en `IMP-008`.
 - `MOD-07` utiliza `TEST-180..TEST-219`; sus resultados se registran en `IMP-009`.
 - `MOD-08` utiliza `TEST-220..TEST-259`; sus resultados se registran en `IMP-010`.
+- `MOD-09` utiliza `TEST-260..TEST-299`; sus resultados se registran en `IMP-011`.

@@ -1,4 +1,5 @@
 import type { PricingType } from '@/modules/worker/types';
+import type { PublicWorkerReputation } from '@/modules/review/types';
 
 export type PublicWorkerService = {
   service_id: string;
@@ -44,6 +45,7 @@ export type PublicWorkerProfile = {
 export type PublicWorkerProfileLoad = {
   profile: PublicWorkerProfile;
   portfolioImageWarning: boolean;
+  reputation: PublicWorkerReputation;
 };
 
 export type PublicWorkerProfileRpcRow = Omit<PublicWorkerProfile, 'services' | 'availability' | 'portfolio'> & {

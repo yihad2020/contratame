@@ -20,6 +20,8 @@ import type {
   PublicWorkerPortfolioItem,
   PublicWorkerProfileLoad,
 } from '@/modules/public-worker/types';
+import { ReviewCard } from '@/modules/review/components/ReviewCard';
+import { formatAverageRating } from '@/modules/review/review-model';
 import { weekdayLabels } from '@/modules/worker/types';
 
 type LoadState =
@@ -158,6 +160,15 @@ function ReadyProfile({ value }: { value: PublicWorkerProfileLoad }) {
           </ScrollView>
         ) : <Text style={styles.muted}>Este profesional todavía no publicó trabajos en su portafolio.</Text>}
       </Section>
+      <Section title="Reseñas">
+        <Text style={styles.reputation}>{formatAverageRating(value.reputation.average_rating, value.reputation.review_count)}</Text>
+        {value.reputation.reviews.length ? value.reputation.reviews.map((review) => (
+          <ReviewCard key={review.review_id} review={review} />
+        )) : <Text style={styles.muted}>No hay reseñas todavía.</Text>}
+        {value.reputation.review_count > value.reputation.reviews.length ? (
+          <Text style={styles.muted}>Se muestran las {value.reputation.reviews.length} reseñas más recientes.</Text>
+        ) : null}
+      </Section>
       <AppButton
         icon="send"
         label="Solicitar servicio"
@@ -210,6 +221,7 @@ const styles = StyleSheet.create({
   detailTitle: { flex: 1, color: colors.text, ...typography.bodyStrong },
   category: { color: colors.primary, ...typography.caption, fontWeight: '700' },
   price: { color: colors.navy, ...typography.label },
+  reputation: { color: colors.warning, ...typography.bodyStrong },
   muted: { color: colors.textSecondary, ...typography.body },
   portfolio: { gap: spacing.md, paddingRight: spacing.sm },
   portfolioCard: { width: 220, gap: spacing.sm },
