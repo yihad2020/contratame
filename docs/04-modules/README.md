@@ -13,5 +13,6 @@ Esta sección documenta el objetivo, alcance, responsabilidades, reglas, datos, 
 - `MOD-07-quotes.md` — `MOD-07 — Cotizaciones, revisiones y aceptación`, implementación `IMP-009`.
 - `MOD-08-booking-lifecycle.md` — `MOD-08 — Ciclo de vida de la contratación`, implementación `IMP-010`.
 - `MOD-09-reviews.md` — `MOD-09 — Reseñas`, implementación `IMP-011`.
+- `MOD-10-chat.md` — `MOD-10 — Chat / Mensajería en tiempo real`, implementación `IMP-012`, validación automatizada completa.
 
 Cada implementación significativa deberá enlazar su módulo con requisitos `RF-XXX`/`RNF-XXX`, pruebas `TEST-XXX` y un registro `IMP-XXX`.

@@ -6,6 +6,7 @@ export type AppIconName =
   | 'account'
   | 'back'
   | 'briefcase'
+  | 'chat'
   | 'check'
   | 'chevronRight'
   | 'edit'
@@ -33,6 +34,7 @@ const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web:
   account: { ios: 'person.crop.circle', android: 'account_circle', web: 'account_circle' },
   back: { ios: 'chevron.left', android: 'chevron_left', web: 'chevron_left' },
   briefcase: { ios: 'briefcase', android: 'work', web: 'work' },
+  chat: { ios: 'message', android: 'chat', web: 'chat' },
   check: { ios: 'checkmark.circle', android: 'check_circle', web: 'check_circle' },
   chevronRight: { ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' },
   edit: { ios: 'pencil', android: 'edit', web: 'edit' },

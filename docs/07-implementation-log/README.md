@@ -13,3 +13,4 @@
 - `IMP-009-mod-07-quotes.md` — Primera implementación de `MOD-07`.
 - `IMP-010-mod-08-booking-lifecycle.md` — Primera implementación de `MOD-08`.
 - `IMP-011-mod-09-reviews.md` — Primera implementación de `MOD-09`.
+- `IMP-012-mod-10-chat.md` — Primera implementación de `MOD-10`, validación automatizada completa.

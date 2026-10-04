@@ -119,6 +119,15 @@ function ReadyDetail({ detail, onRequestChanged }: { detail: ServiceRequestDetai
       <DetailSection title="Propuesta y contratación">
         <QuotePanel detail={detail} onRequestChanged={onRequestChanged} />
       </DetailSection>
+
+      <DetailSection title="Conversación">
+        <Text style={styles.value}>Coordina este servicio únicamente con la persona participante de la solicitud.</Text>
+        <AppButton
+          label="Abrir chat"
+          icon="chat"
+          onPress={() => router.push({ pathname: '/(app)/chat/request/[requestId]', params: { requestId: detail.request_id } } as never)}
+        />
+      </DetailSection>
     </>
   );
 }
