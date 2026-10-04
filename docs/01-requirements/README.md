@@ -14,6 +14,7 @@ Esta sección contiene los requisitos funcionales (`RF-XXX`), requisitos no func
 - `mod-08-booking-lifecycle.md` — Requisitos de `MOD-08 — Ciclo de vida de la contratación`.
 - `mod-09-reviews.md` — Requisitos de `MOD-09 — Reseñas`.
 - `mod-10-chat.md` — Requisitos de `MOD-10 — Chat / Mensajería en tiempo real`.
+- `mod-11-notifications.md` — Requisitos de `MOD-11 — Notificaciones`.
 
 ## Identificadores asignados
 
@@ -38,3 +39,5 @@ MOD-08 continúa con requisitos funcionales `RF-067` a `RF-075` y no funcionales
 MOD-09 continúa con requisitos funcionales `RF-076` a `RF-084` y no funcionales `RNF-049` a `RNF-054`.
 
 MOD-10 continúa con requisitos funcionales `RF-085` a `RF-096` y no funcionales `RNF-055` a `RNF-062`.
+
+MOD-11 continúa con requisitos funcionales `RF-097` a `RF-106` y no funcionales `RNF-063` a `RNF-069`.

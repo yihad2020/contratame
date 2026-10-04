@@ -5,7 +5,7 @@ import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
 
-type HeaderAction = { label: string; icon: AppIconName; onPress: () => void };
+type HeaderAction = { label: string; icon: AppIconName; onPress: () => void; badgeCount?: number | null };
 
 export function MarketplaceHeader({ title, eyebrow, subtitle, back, action, brand = false }: {
   title: string;
@@ -31,10 +31,15 @@ export function MarketplaceHeader({ title, eyebrow, subtitle, back, action, bran
   );
 }
 
-function HeaderActionButton({ label, icon, onPress }: HeaderAction) {
+function HeaderActionButton({ label, icon, onPress, badgeCount }: HeaderAction) {
   return (
     <Pressable accessibilityLabel={label} accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
       <AppIcon name={icon} color={colors.white} size={sizing.iconMd} />
+      {typeof badgeCount === 'number' && badgeCount > 0 ? (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{badgeCount > 99 ? '99+' : badgeCount}</Text>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -45,6 +50,8 @@ const styles = StyleSheet.create({
   logo: { backgroundColor: colors.white, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radii.md },
   button: { width: sizing.touchTarget, height: sizing.touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.navySoft },
   buttonPressed: { opacity: 0.7 },
+  badge: { position: 'absolute', top: -3, right: -3, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xs, borderRadius: radii.pill, backgroundColor: colors.green, borderWidth: 2, borderColor: colors.navyDeep },
+  badgeText: { color: colors.navyDeep, fontSize: 10, lineHeight: 12, fontWeight: '800' },
   buttonSpacer: { width: sizing.touchTarget },
   copy: { gap: spacing.xs },
   eyebrow: { color: colors.textOnDarkMuted, ...typography.label },
