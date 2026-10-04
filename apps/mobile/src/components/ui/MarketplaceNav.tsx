@@ -4,12 +4,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { colors, sizing, spacing, typography } from '@/constants/theme';
 
-export function MarketplaceNav({ active }: { active: 'home' | 'explore' | 'requests' | 'profile' }) {
+export function MarketplaceNav({ active }: { active: 'home' | 'explore' | 'requests' | 'chat' | 'profile' }) {
   return (
     <View accessibilityRole="tablist" style={styles.nav}>
       <NavItem active={active === 'home'} label="Inicio" icon="home" onPress={() => router.replace('/(app)/home')} />
       <NavItem active={active === 'explore'} label="Explorar" icon="search" onPress={() => router.replace('/(app)/explore' as never)} />
       <NavItem active={active === 'requests'} label="Solicitudes" icon="requests" onPress={() => router.replace('/(app)/requests' as never)} />
+      <NavItem active={active === 'chat'} label="Chat" icon="chat" onPress={() => router.replace('/(app)/chats' as never)} />
       <NavItem active={active === 'profile'} label="Mi perfil" icon="account" onPress={() => router.replace('/(app)/profile')} />
     </View>
   );
