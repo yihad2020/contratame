@@ -20,12 +20,16 @@ import {
 } from '@/modules/booking/booking-model';
 import { getMyBooking, transitionBooking } from '@/modules/booking/booking-service';
 import type { BookingAction, BookingDetail, BookingStatus } from '@/modules/booking/types';
+import { ReviewCard } from '@/modules/review/components/ReviewCard';
+import { canCreateBookingReview } from '@/modules/review/review-model';
+import { getMyBookingReview } from '@/modules/review/review-service';
+import type { BookingReview } from '@/modules/review/types';
 
 type DetailState =
   | { kind: 'loading' }
   | { kind: 'unavailable' }
   | { kind: 'error'; message: string }
-  | { kind: 'ready'; detail: BookingDetail };
+  | { kind: 'ready'; detail: BookingDetail; review: BookingReview | null };
 
 export function BookingDetailScreen({ bookingIdParam }: { bookingIdParam: string | string[] | undefined }) {
   const bookingId = normalizeBookingId(bookingIdParam);
@@ -35,9 +39,9 @@ export function BookingDetailScreen({ bookingIdParam }: { bookingIdParam: string
   useEffect(() => {
     if (!bookingId) return;
     let current = true;
-    void getMyBooking(bookingId)
-      .then((detail) => {
-        if (current) setState(detail ? { kind: 'ready', detail } : { kind: 'unavailable' });
+    void Promise.all([getMyBooking(bookingId), getMyBookingReview(bookingId)])
+      .then(([detail, review]) => {
+        if (current) setState(detail ? { kind: 'ready', detail, review } : { kind: 'unavailable' });
       })
       .catch((cause) => {
         if (current) setState({ kind: 'error', message: bookingFailureMessage(cause) });
@@ -65,7 +69,7 @@ export function BookingDetailScreen({ bookingIdParam }: { bookingIdParam: string
         </View>
       ) : null}
       {state.kind === 'ready' ? (
-        <ReadyBooking detail={state.detail} onChanged={() => setAttempt((value) => value + 1)} />
+        <ReadyBooking detail={state.detail} review={state.review} onChanged={() => setAttempt((value) => value + 1)} />
       ) : null}
     </Screen>
   );
@@ -81,7 +85,7 @@ function UnavailableBooking() {
   );
 }
 
-function ReadyBooking({ detail, onChanged }: { detail: BookingDetail; onChanged: () => void }) {
+function ReadyBooking({ detail, review, onChanged }: { detail: BookingDetail; review: BookingReview | null; onChanged: () => void }) {
   const counterpart = detail.perspective === 'customer'
     ? detail.worker_display_name
     : detail.customer_display_name;
@@ -126,6 +130,22 @@ function ReadyBooking({ detail, onChanged }: { detail: BookingDetail; onChanged:
           </View>
         ))}
       </DetailSection>
+
+      {review ? (
+        <DetailSection title="Reseña del servicio">
+          <ReviewCard review={review} />
+          <FeedbackMessage tone="info">La reseña enviada es de solo lectura.</FeedbackMessage>
+        </DetailSection>
+      ) : canCreateBookingReview(detail.perspective, detail.booking_status, review) ? (
+        <DetailSection title="Reseña del servicio">
+          <Text style={styles.value}>Tu experiencia ayuda a construir una reputación real del profesional.</Text>
+          <AppButton
+            label="Calificar servicio"
+            icon="edit"
+            onPress={() => router.push({ pathname: '/(app)/booking/[bookingId]/review', params: { bookingId: detail.booking_id } } as never)}
+          />
+        </DetailSection>
+      ) : null}
     </>
   );
 }
