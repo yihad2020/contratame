@@ -148,7 +148,7 @@ Ejemplos previstos:
 - `MOD-08 — Reservas`
 - `MOD-09 — Reseñas`
 - `MOD-10 — Chat / Mensajería en tiempo real`
-- `MOD-11 — Administración`
+- `MOD-11 — Notificaciones`
 
 La numeración definitiva podrá cambiar conforme se formalice la arquitectura.
 
@@ -382,3 +382,4 @@ El objetivo es evitar documentar retrospectivamente seis meses de desarrollo al 
 - `MOD-08` — Ciclo de vida de la contratación, implementación `IMP-010`.
 - `MOD-09` — Reseñas posteriores al servicio, implementación `IMP-011`.
 - `MOD-10` — Chat / Mensajería en tiempo real, implementación `IMP-012`, validación automatizada completa.
+- `MOD-11` — Notificaciones, implementación `IMP-013`, validación automatizada completa.

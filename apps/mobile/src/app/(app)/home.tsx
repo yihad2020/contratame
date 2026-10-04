@@ -10,6 +10,7 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ErrorMessage } from '@/components/ui/Typography';
 import { colors, radii, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/modules/auth/auth-context';
+import { getMyNotificationUnreadCount } from '@/modules/notification/notification-service';
 import type { WorkerProfile } from '@/modules/worker/types';
 import { workerFailureMessage } from '@/modules/worker/worker-errors';
 import { getWorkerCardCopy } from '@/modules/worker/validation';
@@ -21,6 +22,7 @@ export default function HomeScreen() {
   const [workerLoading, setWorkerLoading] = useState(true);
   const [workerLoadError, setWorkerLoadError] = useState<string | null>(null);
   const [startingWorker, setStartingWorker] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState<number | null>(null);
   const startingWorkerRef = useRef(false);
 
   useFocusEffect(useCallback(() => {
@@ -31,6 +33,9 @@ export default function HomeScreen() {
       .then((result) => { if (active) setWorker(result); })
       .catch((cause) => { if (active) setWorkerLoadError(workerFailureMessage(cause, 'No se pudo consultar tu perfil profesional. Toca la tarjeta para reintentar.', 'load worker status')); })
       .finally(() => { if (active) setWorkerLoading(false); });
+    void getMyNotificationUnreadCount()
+      .then((count) => { if (active) setUnreadNotifications(count); })
+      .catch(() => { if (active) setUnreadNotifications(null); });
     return () => { active = false; };
   }, []));
 
@@ -54,7 +59,12 @@ export default function HomeScreen() {
 
   return (
     <Screen contentStyle={styles.screen} footer={<MarketplaceNav active="home" />} header={<MarketplaceHeader
-        action={{ label: 'Abrir mi perfil', icon: 'account', onPress: () => router.push('/(app)/profile') }}
+        action={{
+          label: 'Abrir notificaciones',
+          icon: 'notifications',
+          badgeCount: unreadNotifications,
+          onPress: () => router.push('/(app)/notifications' as never),
+        }}
         brand
         eyebrow={`Hola, ${profile?.first_name ?? 'bienvenido'}`}
         title="¿Qué quieres hacer hoy?"

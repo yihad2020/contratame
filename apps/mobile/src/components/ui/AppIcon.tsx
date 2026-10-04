@@ -21,11 +21,13 @@ export type AppIconName =
   | 'location'
   | 'logout'
   | 'mail'
+  | 'notifications'
   | 'plus'
   | 'refresh'
   | 'requests'
   | 'send'
   | 'search'
+  | 'star'
   | 'time'
   | 'trash'
   | 'tools';
@@ -49,11 +51,13 @@ const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web:
   location: { ios: 'location', android: 'location_on', web: 'location_on' },
   logout: { ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' },
   mail: { ios: 'envelope', android: 'mail', web: 'mail' },
+  notifications: { ios: 'bell', android: 'notifications', web: 'notifications' },
   plus: { ios: 'plus', android: 'add', web: 'add' },
   refresh: { ios: 'arrow.clockwise', android: 'refresh', web: 'refresh' },
   requests: { ios: 'doc.text', android: 'description', web: 'description' },
   send: { ios: 'paperplane', android: 'send', web: 'send' },
   search: { ios: 'magnifyingglass', android: 'search', web: 'search' },
+  star: { ios: 'star', android: 'star', web: 'star' },
   time: { ios: 'clock', android: 'schedule', web: 'schedule' },
   trash: { ios: 'trash', android: 'delete', web: 'delete' },
   tools: { ios: 'hammer', android: 'handyman', web: 'handyman' },
