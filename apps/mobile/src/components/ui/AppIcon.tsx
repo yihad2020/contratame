@@ -14,6 +14,7 @@ export type AppIconName =
   | 'eye'
   | 'eyeOff'
   | 'filter'
+  | 'heart'
   | 'home'
   | 'info'
   | 'image'
@@ -24,6 +25,7 @@ export type AppIconName =
   | 'notifications'
   | 'plus'
   | 'refresh'
+  | 'report'
   | 'requests'
   | 'send'
   | 'search'
@@ -44,6 +46,7 @@ const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web:
   eye: { ios: 'eye', android: 'visibility', web: 'visibility' },
   eyeOff: { ios: 'eye.slash', android: 'visibility_off', web: 'visibility_off' },
   filter: { ios: 'line.3.horizontal.decrease', android: 'filter_list', web: 'filter_list' },
+  heart: { ios: 'heart', android: 'favorite', web: 'favorite' },
   home: { ios: 'house', android: 'home', web: 'home' },
   info: { ios: 'info.circle', android: 'info', web: 'info' },
   image: { ios: 'photo', android: 'image', web: 'image' },
@@ -54,6 +57,7 @@ const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web:
   notifications: { ios: 'bell', android: 'notifications', web: 'notifications' },
   plus: { ios: 'plus', android: 'add', web: 'add' },
   refresh: { ios: 'arrow.clockwise', android: 'refresh', web: 'refresh' },
+  report: { ios: 'flag', android: 'flag', web: 'flag' },
   requests: { ios: 'doc.text', android: 'description', web: 'description' },
   send: { ios: 'paperplane', android: 'send', web: 'send' },
   search: { ios: 'magnifyingglass', android: 'search', web: 'search' },

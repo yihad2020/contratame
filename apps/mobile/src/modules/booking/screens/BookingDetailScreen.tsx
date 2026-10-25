@@ -146,6 +146,12 @@ function ReadyBooking({ detail, review, onChanged }: { detail: BookingDetail; re
           />
         </DetailSection>
       ) : null}
+      <AppButton
+        icon="report"
+        label="Reportar esta contratación"
+        variant="ghost"
+        onPress={() => router.push({ pathname: '/(app)/booking/[bookingId]/report', params: { bookingId: detail.booking_id } } as never)}
+      />
     </>
   );
 }

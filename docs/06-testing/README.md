@@ -15,6 +15,7 @@ Esta sección contiene la estrategia, los casos de prueba y la evidencia de vali
 - `MOD-09-test-plan.md` — Plan de pruebas de `MOD-09 — Reseñas`.
 - `MOD-10-test-plan.md` — Plan de pruebas de `MOD-10 — Chat / Mensajería en tiempo real`.
 - `MOD-11-test-plan.md` — Plan de pruebas de `MOD-11 — Notificaciones`.
+- `MOD-12-test-plan.md` — Plan de pruebas de `MOD-12 — Favoritos, Reportes y Moderación Administrativa`.
 
 ## Convención inicial
 
@@ -31,3 +32,4 @@ Esta sección contiene la estrategia, los casos de prueba y la evidencia de vali
 - `MOD-09` utiliza `TEST-260..TEST-299`; sus resultados se registran en `IMP-011`.
 - `MOD-10` utiliza `TEST-300..TEST-349`; sus resultados se registran en `IMP-012`.
 - `MOD-11` utiliza `TEST-350..TEST-399`; sus resultados se registran en `IMP-013`.
+- `MOD-12` utiliza `TEST-400..TEST-449`; sus resultados se registran en `IMP-014`.

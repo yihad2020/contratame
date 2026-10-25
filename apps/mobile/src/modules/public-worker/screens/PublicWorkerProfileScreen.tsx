@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
@@ -9,6 +9,12 @@ import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
 import { Screen } from '@/components/ui/Screen';
 import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { favoriteFailureMessage } from '@/modules/favorite/favorite-errors';
+import {
+  addWorkerFavorite,
+  getWorkerFavoriteState,
+  removeWorkerFavorite,
+} from '@/modules/favorite/favorite-service';
 import { formatMarketplacePrice } from '@/modules/marketplace/validation';
 import { publicWorkerFailureMessage } from '@/modules/public-worker/public-worker-errors';
 import {
@@ -169,12 +175,94 @@ function ReadyProfile({ value }: { value: PublicWorkerProfileLoad }) {
           <Text style={styles.muted}>Se muestran las {value.reputation.reviews.length} reseñas más recientes.</Text>
         ) : null}
       </Section>
+      <FavoriteControl workerId={profile.worker_id} />
+      <AppButton
+        icon="report"
+        label="Reportar perfil"
+        variant="ghost"
+        onPress={() => router.push({ pathname: '/(app)/worker/[workerId]/report', params: { workerId: profile.worker_id } } as never)}
+      />
       <AppButton
         icon="send"
         label="Solicitar servicio"
         onPress={() => router.push({ pathname: '/(app)/worker/[workerId]/request', params: { workerId: profile.worker_id } } as never)}
       />
     </>
+  );
+}
+
+function FavoriteControl({ workerId }: { workerId: string }) {
+  const [isFavorite, setIsFavorite] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const busyRef = useRef(false);
+
+  useEffect(() => {
+    let current = true;
+    void getWorkerFavoriteState(workerId)
+      .then((value) => {
+        if (!current) return;
+        setIsFavorite(value);
+        setFailure(null);
+      })
+      .catch((cause) => {
+        if (current) setFailure(favoriteFailureMessage(cause));
+      })
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => { current = false; };
+  }, [attempt, workerId]);
+
+  async function toggle() {
+    if (busyRef.current || isFavorite === null) return;
+    busyRef.current = true;
+    setBusy(true);
+    setFailure(null);
+    setNotice(null);
+    try {
+      const result = isFavorite
+        ? await removeWorkerFavorite(workerId)
+        : await addWorkerFavorite(workerId);
+      setIsFavorite(result.isFavorite);
+      setNotice(result.isFavorite
+        ? 'Profesional agregado a tus favoritos.'
+        : 'Profesional eliminado de tus favoritos.');
+    } catch (cause) {
+      setFailure(favoriteFailureMessage(cause));
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+  }
+
+  if (loading) return <AppButton disabled icon="heart" label="Consultando favorito…" variant="secondary" onPress={() => {}} />;
+  if (failure && isFavorite === null) {
+    return (
+      <View style={styles.favoriteFeedback}>
+        <ErrorMessage>{failure}</ErrorMessage>
+        <AppButton label="Reintentar favorito" variant="secondary" onPress={() => {
+          setLoading(true);
+          setAttempt((current) => current + 1);
+        }} />
+      </View>
+    );
+  }
+  return (
+    <View style={styles.favoriteFeedback}>
+      {notice ? <FeedbackMessage>{notice}</FeedbackMessage> : null}
+      {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}
+      <AppButton
+        icon="heart"
+        label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+        loading={busy}
+        variant="secondary"
+        onPress={() => void toggle()}
+      />
+    </View>
   );
 }
 
@@ -228,4 +316,5 @@ const styles = StyleSheet.create({
   portfolioImage: { width: 220, aspectRatio: 4 / 3, borderRadius: radii.lg, backgroundColor: colors.surfaceMuted },
   imageFallback: { alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
   portfolioTitle: { color: colors.text, ...typography.label },
+  favoriteFeedback: { gap: spacing.sm },
 });
