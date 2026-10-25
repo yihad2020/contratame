@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -110,6 +111,10 @@ export default function ProfileScreen() {
       {message?.tone === 'success' ? <FeedbackMessage>{message.text}</FeedbackMessage> : null}
       {message?.tone === 'error' ? <ErrorMessage>{message.text}</ErrorMessage> : null}
       <AppButton icon="check" label="Guardar cambios" loading={busy} onPress={() => void submit()} />
+      <FormSection label="Guardados">
+        <AppButton icon="heart" label="Mis favoritos" onPress={() => router.push('/(app)/favorites' as never)} variant="secondary" />
+        <AppButton icon="report" label="Mis reportes" onPress={() => router.push('/(app)/reports' as never)} variant="secondary" />
+      </FormSection>
       <FormSection label="Cuenta">
         <AppButton icon="logout" label="Cerrar sesión" onPress={() => void signOut()} variant="ghost" />
       </FormSection>

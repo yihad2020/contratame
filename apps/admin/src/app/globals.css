@@ -36,6 +36,10 @@ input, textarea { width: 100%; border: 1px solid #bcc9d7; border-radius: 10px; p
 input { min-height: 46px; }
 textarea { resize: vertical; }
 input:focus, textarea:focus { outline: 3px solid rgba(9, 105, 218, .15); border-color: var(--blue); }
+.status.open { color: var(--amber); background: var(--amber-soft); }
+.status.under_review { color: var(--blue); background: #eef6ff; }
+.status.resolved { color: var(--green); background: var(--green-soft); }
+.status.dismissed { color: var(--red); background: var(--red-soft); }
 
 .admin-shell { min-height: 100vh; display: grid; grid-template-columns: 240px minmax(0, 1fr); }
 .sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 30px; padding: 26px 22px; color: #d9e6f3; background: var(--navy-deep); }

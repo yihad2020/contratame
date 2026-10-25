@@ -15,6 +15,7 @@ Esta sección contiene los requisitos funcionales (`RF-XXX`), requisitos no func
 - `mod-09-reviews.md` — Requisitos de `MOD-09 — Reseñas`.
 - `mod-10-chat.md` — Requisitos de `MOD-10 — Chat / Mensajería en tiempo real`.
 - `mod-11-notifications.md` — Requisitos de `MOD-11 — Notificaciones`.
+- `mod-12-favorites-reports.md` — Requisitos de `MOD-12 — Favoritos, Reportes y Moderación Administrativa`.
 
 ## Identificadores asignados
 
@@ -41,3 +42,5 @@ MOD-09 continúa con requisitos funcionales `RF-076` a `RF-084` y no funcionales
 MOD-10 continúa con requisitos funcionales `RF-085` a `RF-096` y no funcionales `RNF-055` a `RNF-062`.
 
 MOD-11 continúa con requisitos funcionales `RF-097` a `RF-106` y no funcionales `RNF-063` a `RNF-069`.
+
+MOD-12 continúa con requisitos funcionales `RF-107` a `RF-121` y no funcionales `RNF-070` a `RNF-078`.

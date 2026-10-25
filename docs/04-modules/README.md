@@ -15,5 +15,6 @@ Esta sección documenta el objetivo, alcance, responsabilidades, reglas, datos, 
 - `MOD-09-reviews.md` — `MOD-09 — Reseñas`, implementación `IMP-011`.
 - `MOD-10-chat.md` — `MOD-10 — Chat / Mensajería en tiempo real`, implementación `IMP-012`, validación automatizada completa.
 - `MOD-11-notifications.md` — `MOD-11 — Notificaciones`, implementación `IMP-013`, validación automatizada completa.
+- `MOD-12-favorites-reports.md` — `MOD-12 — Favoritos, Reportes y Moderación Administrativa`, implementación `IMP-014`, validación pendiente.
 
 Cada implementación significativa deberá enlazar su módulo con requisitos `RF-XXX`/`RNF-XXX`, pruebas `TEST-XXX` y un registro `IMP-XXX`.
