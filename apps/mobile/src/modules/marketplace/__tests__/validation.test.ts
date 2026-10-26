@@ -34,6 +34,8 @@ function result(workerId: string, totalCount = 2): MarketplaceResult {
     price_bob: 80,
     distance_m: null,
     total_count: totalCount,
+    is_verified: false,
+    certification_expires_at: null,
   };
 }
 

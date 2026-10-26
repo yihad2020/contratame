@@ -40,6 +40,8 @@ export type PublicWorkerProfile = {
   services: PublicWorkerService[];
   availability: PublicWorkerAvailability[];
   portfolio: PublicWorkerPortfolioItem[];
+  is_verified: boolean;
+  certification_expires_at: string | null;
 };
 
 export type PublicWorkerProfileLoad = {
@@ -48,7 +50,7 @@ export type PublicWorkerProfileLoad = {
   reputation: PublicWorkerReputation;
 };
 
-export type PublicWorkerProfileRpcRow = Omit<PublicWorkerProfile, 'services' | 'availability' | 'portfolio'> & {
+export type PublicWorkerProfileRpcRow = Omit<PublicWorkerProfile, 'services' | 'availability' | 'portfolio' | 'is_verified' | 'certification_expires_at'> & {
   services: (Omit<PublicWorkerService, 'price_bob'> & { price_bob: unknown })[];
   availability: PublicWorkerAvailability[];
   portfolio: Omit<PublicWorkerPortfolioItem, 'signed_url'>[];

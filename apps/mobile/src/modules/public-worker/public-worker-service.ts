@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { loadPublicWorkerCertifications } from '@/modules/certification/certification-service';
 import {
   attachPortfolioSignedUrls,
   normalizePublicWorkerId,
@@ -25,7 +26,14 @@ export async function loadPublicWorkerRequestContext(workerId: string): Promise<
   if (error) throw error;
   if (!data) return null;
 
-  return normalizePublicWorkerProfile(data as PublicWorkerProfileRpcRow);
+  const profile = normalizePublicWorkerProfile(data as PublicWorkerProfileRpcRow);
+  const certifications = await loadPublicWorkerCertifications([profile.worker_id]);
+  const certification = certifications.get(profile.worker_id);
+  return {
+    ...profile,
+    is_verified: certification?.is_verified ?? false,
+    certification_expires_at: certification?.certification_expires_at ?? null,
+  };
 }
 
 export async function loadPublicWorkerProfile(workerId: string): Promise<PublicWorkerProfileLoad | null> {

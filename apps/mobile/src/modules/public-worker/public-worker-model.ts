@@ -18,6 +18,8 @@ export function normalizePublicWorkerProfile(row: PublicWorkerProfileRpcRow): Pu
     ...row,
     years_experience: row.years_experience === null ? null : Number(row.years_experience),
     service_radius_m: Number(row.service_radius_m),
+    is_verified: false,
+    certification_expires_at: null,
     services: row.services.map((service) => ({
       ...service,
       price_bob: service.price_bob === null || service.price_bob === undefined

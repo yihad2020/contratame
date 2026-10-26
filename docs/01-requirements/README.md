@@ -44,3 +44,5 @@ MOD-10 continúa con requisitos funcionales `RF-085` a `RF-096` y no funcionales
 MOD-11 continúa con requisitos funcionales `RF-097` a `RF-106` y no funcionales `RNF-063` a `RNF-069`.
 
 MOD-12 continúa con requisitos funcionales `RF-107` a `RF-121` y no funcionales `RNF-070` a `RNF-078`.
+
+MOD-13 continúa con requisitos funcionales `RF-122` a `RF-135` y no funcionales `RNF-079` a `RNF-086`.

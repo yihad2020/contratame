@@ -56,6 +56,8 @@ export type MarketplaceResult = {
   price_bob: number | null;
   distance_m: number | null;
   total_count: number;
+  is_verified: boolean;
+  certification_expires_at: string | null;
 };
 
 export type MarketplaceCategory = Pick<ServiceCategory, 'id' | 'name' | 'slug' | 'icon_key' | 'sort_order'>;

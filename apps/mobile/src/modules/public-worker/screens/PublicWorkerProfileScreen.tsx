@@ -121,6 +121,7 @@ function ReadyProfile({ value }: { value: PublicWorkerProfileLoad }) {
         </View>
         <View style={styles.heroCopy}>
           <Text style={styles.name}>{profile.display_name}</Text>
+          {profile.is_verified ? <View style={styles.verified}><AppIcon name="check" color={colors.success} size={sizing.iconSm} /><Text style={styles.verifiedText}>Verificado por Contrátame</Text></View> : null}
           <View style={styles.locationRow}>
             <AppIcon name="location" color={colors.green} size={sizing.iconSm} />
             <Text style={styles.location}>{profile.public_area_label}, {profile.city}, {profile.department}</Text>
@@ -295,6 +296,8 @@ const styles = StyleSheet.create({
   initials: { color: colors.primary, ...typography.title },
   heroCopy: { gap: spacing.xs },
   name: { color: colors.navy, ...typography.title },
+  verified: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radii.pill, backgroundColor: colors.successSoft },
+  verifiedText: { color: colors.success, ...typography.caption, fontWeight: '700' },
   locationRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
   location: { flex: 1, color: colors.textSecondary, ...typography.label },
   radius: { color: colors.success, ...typography.label },
