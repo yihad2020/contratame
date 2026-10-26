@@ -15,7 +15,10 @@ export function MarketplaceResultCard({ result, onOpen }: { result: MarketplaceR
           <Text style={styles.initials}>{initials}</Text>
         </View>
         <View style={styles.identity}>
-          <Text style={styles.name}>{result.display_name}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.name}>{result.display_name}</Text>
+            {result.is_verified ? <View style={styles.verified}><AppIcon name="check" color={colors.success} size={14} /><Text style={styles.verifiedText}>Verificado</Text></View> : null}
+          </View>
           <Text style={styles.category}>{result.category_name}</Text>
           <View style={styles.locationRow}>
             <AppIcon name="location" color={colors.textSecondary} size={sizing.iconSm} />
@@ -56,6 +59,9 @@ const styles = StyleSheet.create({
   initials: { color: colors.primary, ...typography.bodyStrong },
   identity: { flex: 1, gap: spacing.xxs },
   name: { color: colors.text, ...typography.section },
+  nameRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.sm },
+  verified: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxs, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radii.pill, backgroundColor: colors.successSoft },
+  verifiedText: { color: colors.success, ...typography.caption, fontWeight: '700' },
   category: { color: colors.primary, ...typography.label },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   location: { flex: 1, color: colors.textSecondary, ...typography.caption },

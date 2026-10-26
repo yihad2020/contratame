@@ -53,6 +53,7 @@ describe('MOD-05 public worker profile model', () => {
     expect(normalized.service_radius_m).toBe(12000);
     expect(normalized.services[0].price_bob).toBe(180);
     expect(normalized.portfolio[0].signed_url).toBeNull();
+    expect(normalized.is_verified).toBe(false);
   });
 
   test('attaches a signed URL by exact private object path', () => {

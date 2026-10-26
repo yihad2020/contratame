@@ -16,3 +16,4 @@
 - `IMP-012-mod-10-chat.md` — Primera implementación de `MOD-10`, validación automatizada completa.
 - `IMP-013-mod-11-notifications.md` — Primera implementación de `MOD-11`, validación automatizada completa.
 - `IMP-014-mod-12-favorites-reports.md` — Primera implementación de `MOD-12`, validación pendiente.
+- `IMP-015-mod-13-certification.md` — Primera implementación de `MOD-13`, validación automatizada completa; E2E manual diferido.

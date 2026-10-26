@@ -40,6 +40,10 @@ input:focus, textarea:focus { outline: 3px solid rgba(9, 105, 218, .15); border-
 .status.under_review { color: var(--blue); background: #eef6ff; }
 .status.resolved { color: var(--green); background: var(--green-soft); }
 .status.dismissed { color: var(--red); background: var(--red-soft); }
+.status.pending_payment { color: var(--amber); background: var(--amber-soft); }
+.status.active { color: var(--green); background: var(--green-soft); }
+.status.expired { color: var(--muted); background: #eef1f5; }
+.status.cancelled { color: var(--red); background: var(--red-soft); }
 
 .admin-shell { min-height: 100vh; display: grid; grid-template-columns: 240px minmax(0, 1fr); }
 .sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 30px; padding: 26px 22px; color: #d9e6f3; background: var(--navy-deep); }
