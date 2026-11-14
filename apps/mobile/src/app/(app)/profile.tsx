@@ -8,10 +8,12 @@ import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
 import { FormField } from '@/components/ui/FormField';
 import { FormSection } from '@/components/ui/FormSection';
+import { MenuList } from '@/components/ui/MenuList';
 import { Screen } from '@/components/ui/Screen';
 import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/modules/auth/auth-context';
+import { getInitials } from '@/modules/home/home-model';
 import { validateProfileInput, type ValidationErrors } from '@/modules/auth/validation';
 import { updateOwnProfile } from '@/modules/profile/profile-service';
 
@@ -54,27 +56,35 @@ export default function ProfileScreen() {
     }
   }
 
+  const fullName = profile ? `${profile.first_name} ${profile.last_name}` : 'Cuenta Contrátame!';
+
   return (
-    <Screen contentStyle={styles.screen} footer={<MarketplaceNav active="profile" />} header={<MarketplaceHeader brand title="Mi perfil" subtitle="Tu cuenta y datos personales" />}>
-      <View style={styles.summary}>
-        <View style={styles.avatar}><AppIcon color={colors.primary} name="account" size={30} /></View>
-        <View style={styles.summaryCopy}>
-          <Text style={styles.summaryName}>{profile ? `${profile.first_name} ${profile.last_name}` : 'Cuenta Contrátame!'}</Text>
-          <Text numberOfLines={1} style={styles.summaryEmail}>{user?.email}</Text>
+    <Screen contentStyle={styles.screen} footer={<MarketplaceNav active="profile" />} header={<MarketplaceHeader brand title="Mi perfil" subtitle="Tu cuenta y datos personales." />}>
+      <View style={styles.identity}>
+        <View style={styles.avatar}><Text style={styles.avatarText}>{getInitials(profile?.first_name, profile?.last_name)}</Text></View>
+        <View style={styles.identityCopy}>
+          <Text numberOfLines={1} style={styles.identityName}>{fullName}</Text>
+          <View style={styles.emailRow}>
+            <AppIcon color={colors.textSecondary} name="mail" size={sizing.iconSm} />
+            <Text numberOfLines={1} selectable style={styles.identityEmail}>{user?.email}</Text>
+          </View>
         </View>
       </View>
-      <FormSection label="Cuenta">
-        <View style={styles.metadataRow}>
-          <View style={styles.metadataIcon}>
-            <AppIcon color={colors.textSecondary} name="mail" size={sizing.iconMd} />
-          </View>
-          <View style={styles.metadataCopy}>
-            <Text style={styles.metadataLabel}>Correo electrónico</Text>
-            <Text numberOfLines={1} selectable style={styles.metadataValue}>{user?.email}</Text>
-            <Text style={styles.metadataHelper}>No editable</Text>
-          </View>
-        </View>
-      </FormSection>
+
+      <MenuList
+        label="Profesional"
+        items={[
+          { key: 'certification', title: 'Certificación', description: 'Consulta o solicita tu verificación profesional', icon: 'check', onPress: () => router.push('/(app)/certification' as never) },
+        ]}
+      />
+      <MenuList
+        label="Actividad"
+        items={[
+          { key: 'favorites', title: 'Favoritos', description: 'Profesionales que guardaste', icon: 'heart', onPress: () => router.push('/(app)/favorites' as never) },
+          { key: 'reports', title: 'Mis reportes', description: 'Seguimiento privado de reportes enviados', icon: 'report', onPress: () => router.push('/(app)/reports' as never) },
+        ]}
+      />
+
       <FormSection label="Información personal">
         <FormField
           autoComplete="given-name"
@@ -107,42 +117,28 @@ export default function ProfileScreen() {
           placeholder="+591 70000000"
           value={phone}
         />
+        <Text style={styles.helper}>El correo electrónico no se puede editar.</Text>
+        {message?.tone === 'success' ? <FeedbackMessage>{message.text}</FeedbackMessage> : null}
+        {message?.tone === 'error' ? <ErrorMessage>{message.text}</ErrorMessage> : null}
+        <AppButton icon="check" label="Guardar cambios" loading={busy} onPress={() => void submit()} />
       </FormSection>
-      {message?.tone === 'success' ? <FeedbackMessage>{message.text}</FeedbackMessage> : null}
-      {message?.tone === 'error' ? <ErrorMessage>{message.text}</ErrorMessage> : null}
-      <AppButton icon="check" label="Guardar cambios" loading={busy} onPress={() => void submit()} />
-      <FormSection label="Perfil profesional">
-        <AppButton icon="check" label="Certificación profesional" onPress={() => router.push('/(app)/certification' as never)} variant="secondary" />
-      </FormSection>
-      <FormSection label="Guardados">
-        <AppButton icon="heart" label="Mis favoritos" onPress={() => router.push('/(app)/favorites' as never)} variant="secondary" />
-        <AppButton icon="report" label="Mis reportes" onPress={() => router.push('/(app)/reports' as never)} variant="secondary" />
-      </FormSection>
-      <FormSection label="Cuenta">
-        <AppButton icon="logout" label="Cerrar sesión" onPress={() => void signOut()} variant="ghost" />
-      </FormSection>
+
+      <MenuList
+        label="Cuenta"
+        items={[{ key: 'signout', title: 'Cerrar sesión', icon: 'logout', tone: 'danger', onPress: () => void signOut() }]}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.lg, paddingTop: spacing.xl },
-  summary: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.surface, padding: spacing.lg, borderRadius: radii.xl, borderWidth: 1, borderColor: colors.border },
-  avatar: { width: 58, height: 58, borderRadius: radii.pill, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
-  summaryCopy: { flex: 1, gap: spacing.xs },
-  summaryName: { color: colors.text, ...typography.section },
-  summaryEmail: { color: colors.textSecondary, ...typography.caption },
-  metadataRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  metadataIcon: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-    backgroundColor: colors.surfaceMuted,
-  },
-  metadataCopy: { flex: 1, gap: spacing.xxs },
-  metadataLabel: { color: colors.textSecondary, ...typography.caption },
-  metadataValue: { color: colors.text, ...typography.bodyStrong },
-  metadataHelper: { color: colors.textSecondary, ...typography.caption },
+  screen: { gap: spacing.xl, paddingTop: spacing.xl },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, padding: spacing.lg, borderRadius: radii.xxl, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  avatar: { width: 64, height: 64, borderRadius: radii.xl, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { color: colors.white, fontSize: 22, lineHeight: 28, fontWeight: '800', letterSpacing: -0.5 },
+  identityCopy: { flex: 1, gap: spacing.xs },
+  identityName: { color: colors.text, fontSize: 20, lineHeight: 26, fontWeight: '800', letterSpacing: -0.4 },
+  emailRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  identityEmail: { flex: 1, color: colors.textSecondary, ...typography.caption },
+  helper: { color: colors.textSecondary, ...typography.caption },
 });

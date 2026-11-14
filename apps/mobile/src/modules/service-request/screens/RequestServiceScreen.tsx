@@ -332,9 +332,9 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, paddingTop: spacing.xl },
-  stateCard: { minHeight: 220, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  stateCard: { minHeight: 220, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   stateTitle: { color: colors.navy, textAlign: 'center', ...typography.title },
-  workerCard: { gap: spacing.xs, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  workerCard: { gap: spacing.xs, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   overline: { color: colors.textSecondary, ...typography.overline },
   workerName: { color: colors.navy, ...typography.title },
   help: { color: colors.textSecondary, ...typography.caption },
@@ -349,6 +349,6 @@ const styles = StyleSheet.create({
   reviewRow: { gap: spacing.xs, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.lg, backgroundColor: colors.surface },
   reviewLabel: { color: colors.textSecondary, ...typography.caption },
   reviewValue: { color: colors.text, ...typography.bodyStrong },
-  successCard: { minHeight: 360, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  successCard: { minHeight: 360, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   successIcon: { width: 64, height: 64, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.successSoft },
 });

@@ -71,7 +71,7 @@ export function ReportSubmissionScreen({ context, targetParam }: { context: Repo
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, paddingTop: spacing.xl },
-  card: { gap: spacing.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  card: { gap: spacing.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   title: { color: colors.navy, ...typography.section },
   copy: { color: colors.textSecondary, ...typography.body },
   reasons: { gap: spacing.sm },

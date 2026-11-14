@@ -170,11 +170,11 @@ function FavoriteCard({ item, removing, onOpen, onRemove }: {
 const styles = StyleSheet.create({
   screen: { gap: spacing.md, paddingTop: spacing.xl },
   state: { minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
-  empty: { minHeight: 280, justifyContent: 'center', gap: spacing.md, padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  empty: { minHeight: 280, justifyContent: 'center', gap: spacing.md, padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   emptyIcon: { width: 58, height: 58, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft },
   emptyTitle: { color: colors.navy, textAlign: 'center', ...typography.title },
   muted: { color: colors.textSecondary, ...typography.body },
-  card: { gap: spacing.sm, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  card: { gap: spacing.sm, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   row: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: radii.md },
   pressed: { opacity: 0.72 },
   cardIcon: { width: sizing.touchTarget, height: sizing.touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft },

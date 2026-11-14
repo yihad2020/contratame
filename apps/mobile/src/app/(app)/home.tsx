@@ -10,7 +10,6 @@ import { Screen } from '@/components/ui/Screen';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/modules/auth/auth-context';
 import { CategoryGrid } from '@/modules/home/components/CategoryGrid';
-import { FeaturedWorkerCard } from '@/modules/home/components/FeaturedWorkerCard';
 import { HomeHero } from '@/modules/home/components/HomeHero';
 import { HomeSearchBar } from '@/modules/home/components/HomeSearchBar';
 import { WorkerStatusPanel } from '@/modules/home/components/WorkerStatusPanel';
@@ -23,6 +22,7 @@ import {
   getWorkerPanel,
   type HomeMode,
 } from '@/modules/home/home-model';
+import { MarketplaceResultCard } from '@/modules/marketplace/components/MarketplaceResultCard';
 import { marketplaceFailureMessage } from '@/modules/marketplace/marketplace-errors';
 import { loadMarketplaceCategories, searchMarketplace } from '@/modules/marketplace/marketplace-service';
 import type { MarketplaceCategory, MarketplaceResult } from '@/modules/marketplace/types';
@@ -192,7 +192,7 @@ export default function HomeScreen() {
             ) : (
               <View style={styles.list}>
                 {featured.map((result) => (
-                  <FeaturedWorkerCard
+                  <MarketplaceResultCard
                     key={result.worker_id}
                     result={result}
                     onOpen={() => router.push({ pathname: '/(app)/worker/[workerId]', params: { workerId: result.worker_id } } as never)}

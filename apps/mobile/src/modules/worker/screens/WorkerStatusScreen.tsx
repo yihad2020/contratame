@@ -107,7 +107,7 @@ export function WorkerStatusScreen() {
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.md, paddingTop: spacing.xl },
-  hero: { alignItems: 'stretch', gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl },
+  hero: { alignItems: 'stretch', gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl },
   heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   icon: { width: 60, height: 60, borderRadius: radii.lg, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.navy, ...typography.title },
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   rejectionCard: { gap: spacing.sm, padding: spacing.lg, backgroundColor: colors.dangerSoft, borderWidth: 1, borderColor: colors.danger, borderRadius: radii.xl },
   rejectionLabel: { color: colors.danger, ...typography.overline },
   rejectionText: { color: colors.text, ...typography.body },
-  section: { gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl },
+  section: { gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl },
   sectionTitle: { color: colors.navy, ...typography.section },
   detailRow: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm },
   detailIcon: { width: 34, height: 34, borderRadius: radii.md, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },

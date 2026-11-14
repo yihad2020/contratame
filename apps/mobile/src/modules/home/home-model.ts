@@ -1,4 +1,3 @@
-import type { AppIconName } from '@/components/ui/AppIcon';
 import type { WorkerApprovalStatus } from '@/modules/worker/types';
 import { getWorkerCardCopy } from '@/modules/worker/validation';
 
@@ -16,20 +15,7 @@ export type WorkerPanel = {
 
 export const HOME_FEATURED_LIMIT = 2;
 
-const CATEGORY_ICONS: Record<string, AppIconName> = {
-  bolt: 'bolt',
-  water: 'water',
-  carpentry: 'carpentry',
-  construction: 'construction',
-  cleaning: 'cleaning',
-  garden: 'garden',
-  paint: 'paint',
-  mechanic: 'mechanic',
-};
-
-export function getCategoryIcon(iconKey: string | null | undefined): AppIconName {
-  return (iconKey && CATEGORY_ICONS[iconKey]) || 'category';
-}
+export { getCategoryIcon } from '@/modules/marketplace/category-icons';
 
 export function getInitials(firstName?: string | null, lastName?: string | null): string {
   const letters = [firstName, lastName]

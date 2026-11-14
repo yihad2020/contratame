@@ -116,22 +116,30 @@ function ReadyProfile({ value }: { value: PublicWorkerProfileLoad }) {
   return (
     <>
       <View style={styles.hero}>
-        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.avatar}>
-          <Text style={styles.initials}>{initials}</Text>
-        </View>
-        <View style={styles.heroCopy}>
-          <Text style={styles.name}>{profile.display_name}</Text>
-          {profile.is_verified ? <View style={styles.verified}><AppIcon name="check" color={colors.success} size={sizing.iconSm} /><Text style={styles.verifiedText}>Verificado por Contrátame</Text></View> : null}
-          <View style={styles.locationRow}>
-            <AppIcon name="location" color={colors.green} size={sizing.iconSm} />
-            <Text style={styles.location}>{profile.public_area_label}, {profile.city}, {profile.department}</Text>
+        <View style={styles.identity}>
+          <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.avatar}>
+            <Text style={styles.initials}>{initials}</Text>
           </View>
-          <Text style={styles.radius}>Radio de servicio: {formatServiceRadius(profile.service_radius_m)}</Text>
+          <View style={styles.heroCopy}>
+            <Text style={styles.name}>{profile.display_name}</Text>
+            <View style={styles.locationRow}>
+              <AppIcon name="location" color={colors.textSecondary} size={sizing.iconSm} />
+              <Text style={styles.location}>{profile.public_area_label}, {profile.city}, {profile.department}</Text>
+            </View>
+            {profile.is_verified ? <View style={styles.verified}><AppIcon name="check" color={colors.success} size={14} /><Text style={styles.verifiedText}>Verificado por Contrátame</Text></View> : null}
+          </View>
+        </View>
+        <View style={styles.facts}>
+          <Fact label="Experiencia" value={profile.years_experience === null ? '—' : `${profile.years_experience} ${profile.years_experience === 1 ? 'año' : 'años'}`} />
+          <Fact divider label="Radio" value={formatServiceRadius(profile.service_radius_m)} />
+          <Fact divider label="Reseñas" value={value.reputation.average_rating === null || value.reputation.review_count === 0 ? '—' : `${new Intl.NumberFormat('es-BO', { maximumFractionDigits: 1 }).format(value.reputation.average_rating)} (${value.reputation.review_count})`} />
         </View>
         {profile.professional_bio ? <Text style={styles.bio}>{profile.professional_bio}</Text> : null}
-        <Text style={styles.experience}>{profile.years_experience === null
-          ? 'Experiencia no indicada'
-          : `${profile.years_experience} años de experiencia`}</Text>
+        <AppButton
+          icon="send"
+          label="Solicitar servicio"
+          onPress={() => router.push({ pathname: '/(app)/worker/[workerId]/request', params: { workerId: profile.worker_id } } as never)}
+        />
       </View>
 
       <Section title="Servicios">
@@ -182,11 +190,6 @@ function ReadyProfile({ value }: { value: PublicWorkerProfileLoad }) {
         label="Reportar perfil"
         variant="ghost"
         onPress={() => router.push({ pathname: '/(app)/worker/[workerId]/report', params: { workerId: profile.worker_id } } as never)}
-      />
-      <AppButton
-        icon="send"
-        label="Solicitar servicio"
-        onPress={() => router.push({ pathname: '/(app)/worker/[workerId]/request', params: { workerId: profile.worker_id } } as never)}
       />
     </>
   );
@@ -267,6 +270,15 @@ function FavoriteControl({ workerId }: { workerId: string }) {
   );
 }
 
+function Fact({ label, value, divider = false }: { label: string; value: string; divider?: boolean }) {
+  return (
+    <View style={[styles.fact, divider && styles.factDivider]}>
+      <Text numberOfLines={1} style={styles.factValue}>{value}</Text>
+      <Text style={styles.factLabel}>{label}</Text>
+    </View>
+  );
+}
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return <View style={styles.section}><Text style={styles.sectionTitle}>{title}</Text>{children}</View>;
 }
@@ -287,24 +299,28 @@ function PortfolioCard({ item }: { item: PublicWorkerPortfolioItem }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.md, paddingTop: spacing.xl },
-  stateCard: { minHeight: 260, gap: spacing.md, alignItems: 'stretch', justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  screen: { gap: spacing.lg, paddingTop: spacing.xl },
+  stateCard: { minHeight: 260, gap: spacing.md, alignItems: 'stretch', justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   stateIcon: { width: 64, height: 64, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft },
   stateTitle: { color: colors.navy, textAlign: 'center', ...typography.title },
-  hero: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  avatar: { width: 72, height: 72, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft, borderWidth: 2, borderColor: colors.primary },
-  initials: { color: colors.primary, ...typography.title },
-  heroCopy: { gap: spacing.xs },
-  name: { color: colors.navy, ...typography.title },
+  hero: { gap: spacing.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  facts: { flexDirection: 'row', borderRadius: radii.lg, backgroundColor: colors.surfaceMuted },
+  fact: { flex: 1, gap: spacing.xxs, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
+  factDivider: { borderLeftWidth: 1, borderLeftColor: colors.border },
+  factValue: { color: colors.text, fontSize: 15, lineHeight: 20, fontWeight: '800', letterSpacing: -0.3 },
+  factLabel: { color: colors.textSecondary, fontSize: 11, lineHeight: 14, fontWeight: '600', letterSpacing: 0.4, textTransform: 'uppercase' },
+  avatar: { width: 72, height: 72, alignItems: 'center', justifyContent: 'center', borderRadius: radii.xl, backgroundColor: colors.primarySoft },
+  initials: { color: colors.primary, ...typography.title, letterSpacing: -0.5 },
+  heroCopy: { flex: 1, gap: spacing.xs },
+  name: { color: colors.navy, ...typography.title, letterSpacing: -0.5 },
   verified: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radii.pill, backgroundColor: colors.successSoft },
   verifiedText: { color: colors.success, ...typography.caption, fontWeight: '700' },
   locationRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
-  location: { flex: 1, color: colors.textSecondary, ...typography.label },
-  radius: { color: colors.success, ...typography.label },
+  location: { flex: 1, color: colors.textSecondary, ...typography.caption },
   bio: { color: colors.text, ...typography.body },
-  experience: { color: colors.primary, ...typography.label },
-  section: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  sectionTitle: { color: colors.navy, ...typography.section },
+  section: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
+  sectionTitle: { color: colors.navy, ...typography.sectionTight },
   detailRow: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border },
   detailIcon: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radii.md, backgroundColor: colors.primarySoft },
   greenIcon: { backgroundColor: colors.greenSoft },

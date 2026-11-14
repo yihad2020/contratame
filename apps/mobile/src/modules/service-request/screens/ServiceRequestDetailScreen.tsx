@@ -148,15 +148,15 @@ function statusTone(status: ServiceRequestStatus): 'success' | 'warning' | 'dang
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, paddingTop: spacing.xl },
-  state: { minHeight: 240, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  state: { minHeight: 240, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   title: { color: colors.navy, ...typography.title },
   muted: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
-  hero: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  hero: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   heroTop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   heroCopy: { flex: 1, gap: spacing.xs },
   counterpart: { color: colors.primary, ...typography.label },
   timestamp: { color: colors.textSecondary, ...typography.caption },
-  section: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  section: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   sectionTitle: { color: colors.navy, ...typography.section },
   row: { minHeight: sizing.touchTarget, gap: spacing.xs, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border },
   label: { color: colors.textSecondary, ...typography.caption },

@@ -131,10 +131,10 @@ function RatingPicker({ value, onChange }: { value: number | null; onChange: (ra
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, paddingTop: spacing.xl },
-  context: { gap: spacing.xs, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  context: { gap: spacing.xs, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   title: { color: colors.navy, ...typography.title },
   meta: { color: colors.textSecondary, ...typography.body },
-  section: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  section: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   sectionTitle: { color: colors.navy, ...typography.section },
   ratingRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.xs },
   ratingButton: { minWidth: sizing.touchTarget, minHeight: sizing.touchTarget, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radii.md, backgroundColor: colors.surface },

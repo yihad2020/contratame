@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, gap: spacing.md, paddingTop: spacing.md },
   state: { flex: 1, minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: spacing.md, padding: spacing.xl },
   muted: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
-  empty: { minHeight: 300, justifyContent: 'center', gap: spacing.md, marginTop: spacing.lg, padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  empty: { minHeight: 300, justifyContent: 'center', gap: spacing.md, marginTop: spacing.lg, padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   emptyIcon: { width: 58, height: 58, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft },
   emptyTitle: { color: colors.navy, textAlign: 'center', ...typography.title },
   list: { gap: spacing.sm, paddingBottom: spacing.xl },

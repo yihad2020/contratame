@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, spacing, typography } from '@/constants/theme';
+import { colors, radii, spacing } from '@/constants/theme';
 
 export function StatusBadge({ label, tone = 'success' }: { label: string; tone?: 'success' | 'warning' | 'danger' }) {
   const backgroundStyle = tone === 'success'
@@ -22,9 +22,9 @@ export function StatusBadge({ label, tone = 'success' }: { label: string; tone?:
 }
 
 const styles = StyleSheet.create({
-  badge: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radii.pill },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm - 2, paddingHorizontal: spacing.md - 2, paddingVertical: spacing.xs + 1, borderRadius: radii.pill },
   dot: { width: 7, height: 7, borderRadius: radii.pill },
-  label: { ...typography.caption, fontWeight: '700' },
+  label: { fontSize: 12, lineHeight: 16, fontWeight: '700', letterSpacing: 0.1 },
   successBackground: { backgroundColor: colors.successSoft },
   successDot: { backgroundColor: colors.success },
   successText: { color: colors.success },

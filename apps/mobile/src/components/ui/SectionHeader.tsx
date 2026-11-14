@@ -17,7 +17,7 @@ export function SectionHeader({ title, actionLabel, onAction }: { title: string;
 
 const styles = StyleSheet.create({
   row: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
-  title: { color: colors.text, ...typography.section },
+  title: { flexShrink: 1, color: colors.navy, ...typography.sectionTight },
   action: { minHeight: sizing.touchTarget, justifyContent: 'center', paddingHorizontal: spacing.sm },
   actionLabel: { color: colors.primary, ...typography.label },
   pressed: { opacity: 0.65 },

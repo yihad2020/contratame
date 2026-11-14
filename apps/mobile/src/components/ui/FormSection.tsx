@@ -14,14 +14,14 @@ export function FormSection({ children, label, plain = false }: PropsWithChildre
 
 const styles = StyleSheet.create({
   section: { gap: spacing.sm },
-  label: { color: colors.textSecondary, ...typography.overline, letterSpacing: 0.8, textTransform: 'uppercase' },
+  label: { color: colors.textSecondary, ...typography.overline, letterSpacing: 1.2, textTransform: 'uppercase', paddingHorizontal: spacing.xs },
   surface: {
     gap: spacing.lg,
     padding: spacing.lg,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radii.lg,
+    borderRadius: radii.xxl,
   },
   plainSurface: { padding: 0, backgroundColor: colors.transparent, borderWidth: 0 },
 });

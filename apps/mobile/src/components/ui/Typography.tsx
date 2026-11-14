@@ -39,13 +39,13 @@ export function FeedbackMessage({ children, tone = 'success' }: PropsWithChildre
 }
 
 const styles = StyleSheet.create({
-  display: { color: colors.text, ...typography.display },
-  title: { color: colors.text, ...typography.title },
+  display: { color: colors.text, ...typography.display, letterSpacing: -0.6 },
+  title: { color: colors.text, ...typography.title, letterSpacing: -0.4 },
   body: { color: colors.text, ...typography.body },
   muted: { color: colors.textSecondary },
   overline: { color: colors.primary, ...typography.overline },
-  feedback: { borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md },
-  feedbackText: { ...typography.caption, fontWeight: '600' },
+  feedback: { borderRadius: radii.lg, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  feedbackText: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
   errorBackground: { backgroundColor: colors.dangerSoft },
   errorText: { color: colors.danger },
   successBackground: { backgroundColor: colors.successSoft },

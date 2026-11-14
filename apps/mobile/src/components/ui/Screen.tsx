@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   clear: { backgroundColor: colors.transparent },
   scroll: { flexGrow: 1 },
   scrollBackground: { backgroundColor: colors.background },
-  footer: { backgroundColor: colors.surface },
+  footer: { backgroundColor: colors.background },
   frame: {
     flex: 1,
     alignSelf: 'center',
