@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -25,19 +25,28 @@ import type {
 } from '@/modules/marketplace/types';
 import {
   emptyMarketplaceDraft,
+  marketplaceDraftFromRouteParams,
   mergeMarketplaceResults,
   validateMarketplaceFilters,
   withoutMarketplaceAppliedLocation,
   withoutMarketplaceDraftLocation,
 } from '@/modules/marketplace/validation';
 
-const initialFilterCheck = validateMarketplaceFilters(emptyMarketplaceDraft);
-if (!initialFilterCheck.ok) throw new Error('Invalid default marketplace filters');
-const initialFilters = initialFilterCheck.value;
+const defaultFilterCheck = validateMarketplaceFilters(emptyMarketplaceDraft);
+if (!defaultFilterCheck.ok) throw new Error('Invalid default marketplace filters');
+const defaultFilters = defaultFilterCheck.value;
 
 export function ExploreScreen() {
-  const [draft, setDraft] = useState<MarketplaceFilterDraft>({ ...emptyMarketplaceDraft });
-  const [applied, setApplied] = useState<AppliedFilters>(initialFilters);
+  const routeParams = useLocalSearchParams<{ q?: string; categoryId?: string }>();
+  const [initial] = useState(() => {
+    const routeDraft = marketplaceDraftFromRouteParams(routeParams);
+    const checked = validateMarketplaceFilters(routeDraft);
+    return checked.ok
+      ? { draft: routeDraft, filters: checked.value }
+      : { draft: { ...emptyMarketplaceDraft }, filters: defaultFilters };
+  });
+  const [draft, setDraft] = useState<MarketplaceFilterDraft>(initial.draft);
+  const [applied, setApplied] = useState<AppliedFilters>(initial.filters);
   const [categories, setCategories] = useState<MarketplaceCategory[]>([]);
   const [results, setResults] = useState<MarketplaceResult[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -75,7 +84,7 @@ export function ExploreScreen() {
 
   useEffect(() => {
     const request = ++requestRef.current;
-    void searchMarketplace(initialFilters, 0)
+    void searchMarketplace(initial.filters, 0)
       .then((next) => {
         if (request !== requestRef.current) return;
         setResults(next);
@@ -91,7 +100,7 @@ export function ExploreScreen() {
     void loadMarketplaceCategories()
       .then(setCategories)
       .catch((cause) => setCategoryFailure(marketplaceFailureMessage(cause, 'No pudimos cargar las categorías. Puedes seguir buscando por texto.', 'load categories')));
-  }, []);
+  }, [initial.filters]);
 
   function applyFilters() {
     const checked = validateMarketplaceFilters(draft);

@@ -4,6 +4,16 @@ import { colors, sizing } from '@/constants/theme';
 
 export type AppIconName =
   | 'account'
+  | 'arrowRight'
+  | 'bolt'
+  | 'water'
+  | 'carpentry'
+  | 'construction'
+  | 'cleaning'
+  | 'garden'
+  | 'paint'
+  | 'mechanic'
+  | 'category'
   | 'back'
   | 'briefcase'
   | 'chat'
@@ -35,6 +45,16 @@ export type AppIconName =
   | 'tools';
 
 const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web: AndroidSymbol }> = {
+  arrowRight: { ios: 'arrow.right', android: 'arrow_forward', web: 'arrow_forward' },
+  bolt: { ios: 'bolt', android: 'bolt', web: 'bolt' },
+  water: { ios: 'drop', android: 'plumbing', web: 'plumbing' },
+  carpentry: { ios: 'hammer', android: 'carpenter', web: 'carpenter' },
+  construction: { ios: 'building.2', android: 'construction', web: 'construction' },
+  cleaning: { ios: 'sparkles', android: 'cleaning_services', web: 'cleaning_services' },
+  garden: { ios: 'leaf', android: 'yard', web: 'yard' },
+  paint: { ios: 'paintbrush', android: 'format_paint', web: 'format_paint' },
+  mechanic: { ios: 'wrench.and.screwdriver', android: 'car_repair', web: 'car_repair' },
+  category: { ios: 'square.grid.2x2', android: 'category', web: 'category' },
   account: { ios: 'person.crop.circle', android: 'account_circle', web: 'account_circle' },
   back: { ios: 'chevron.left', android: 'chevron_left', web: 'chevron_left' },
   briefcase: { ios: 'briefcase', android: 'work', web: 'work' },

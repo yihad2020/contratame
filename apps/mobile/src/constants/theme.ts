@@ -8,6 +8,10 @@ export const colors = {
   navySoft: '#183B5A',
   textOnDark: '#D9E6F3',
   textOnDarkMuted: '#BFD2E7',
+  onDarkSurface: 'rgba(255, 255, 255, 0.07)',
+  onDarkBorder: 'rgba(255, 255, 255, 0.12)',
+  warningOnDark: '#F7B548',
+  successOnDark: '#4CD07D',
   green: '#20C65A',
   greenPressed: '#169C45',
   greenSoft: '#EAFBF0',
@@ -48,13 +52,17 @@ export const radii = {
   md: 12,
   lg: 16,
   xl: 20,
+  xxl: 24,
+  hero: 28,
   pill: 999,
 } as const;
 
 export const typography = {
+  hero: { fontSize: 34, lineHeight: 37, fontWeight: '800' as const, letterSpacing: -0.9 },
   display: { fontSize: 28, lineHeight: 34, fontWeight: '800' as const },
   title: { fontSize: 22, lineHeight: 28, fontWeight: '800' as const },
   section: { fontSize: 18, lineHeight: 24, fontWeight: '700' as const },
+  sectionTight: { fontSize: 20, lineHeight: 26, fontWeight: '800' as const, letterSpacing: -0.4 },
   body: { fontSize: 16, lineHeight: 24, fontWeight: '400' as const },
   bodyStrong: { fontSize: 16, lineHeight: 24, fontWeight: '700' as const },
   label: { fontSize: 14, lineHeight: 20, fontWeight: '600' as const },
@@ -71,4 +79,11 @@ export const sizing = {
   iconLg: 28,
   screenMaxWidth: 560,
   screenPadding: 20,
+} as const;
+
+export const motion = {
+  pressedScale: 0.97,
+  pressSpring: { speed: 40, bounciness: 0 },
+  releaseSpring: { speed: 22, bounciness: 9 },
+  slideSpring: { speed: 16, bounciness: 7 },
 } as const;

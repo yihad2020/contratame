@@ -26,6 +26,26 @@ export const emptyMarketplaceDraft: MarketplaceFilterDraft = {
   sort: 'default',
 };
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Builds the initial Explore draft from route params sent by Inicio
+ * (`q` and `categoryId`). Unknown or malformed values are ignored.
+ */
+export function marketplaceDraftFromRouteParams(params: {
+  q?: string | string[];
+  categoryId?: string | string[];
+}): MarketplaceFilterDraft {
+  const first = (value?: string | string[]) => (Array.isArray(value) ? value[0] : value) ?? '';
+  const query = Array.from(first(params.q).trim()).slice(0, 100).join('');
+  const categoryId = first(params.categoryId).trim();
+  return {
+    ...emptyMarketplaceDraft,
+    query,
+    categoryId: UUID_PATTERN.test(categoryId) ? categoryId : '',
+  };
+}
+
 export function withoutMarketplaceDraftLocation(
   draft: MarketplaceFilterDraft,
 ): MarketplaceFilterDraft {
