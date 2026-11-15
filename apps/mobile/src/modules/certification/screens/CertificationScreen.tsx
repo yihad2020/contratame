@@ -104,14 +104,14 @@ function CertificationStateCard({ state, submitting, submit }: { state: Certific
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, paddingTop: spacing.xl },
-  explanation: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  explanation: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   icon: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.successSoft },
   copy: { gap: spacing.xs },
   title: { color: colors.navy, ...typography.title },
   body: { color: colors.textSecondary, ...typography.body },
   facts: { gap: spacing.xs, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border },
   fact: { color: colors.text, ...typography.label },
-  state: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  state: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   stateHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   stateTitle: { color: colors.navy, ...typography.section },
   meta: { color: colors.textSecondary, ...typography.caption },

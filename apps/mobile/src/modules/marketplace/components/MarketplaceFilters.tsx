@@ -90,7 +90,7 @@ function FilterGroup<T extends string>({ label, options, value, onChange }: {
 }
 
 const styles = StyleSheet.create({
-  panel: { gap: spacing.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
+  panel: { gap: spacing.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   title: { color: colors.navy, ...typography.section },
   fieldsRow: { flexDirection: 'row', gap: spacing.md },
   field: { flex: 1 },

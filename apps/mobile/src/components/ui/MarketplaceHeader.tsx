@@ -1,60 +1,103 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { ReactNode } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
-import { BrandLogo } from '@/components/ui/BrandLogo';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
 
 type HeaderAction = { label: string; icon: AppIconName; onPress: () => void; badgeCount?: number | null };
 
-export function MarketplaceHeader({ title, eyebrow, subtitle, back, action, brand = false }: {
+/**
+ * Dark header shared by every signed-in screen.
+ * - `brand` (tab roots): wordmark + large editorial title.
+ * - `back` (detail screens): compact back button + tighter title.
+ */
+export function MarketplaceHeader({ title, eyebrow, subtitle, back, action, brand = false, children }: {
   title: string;
   eyebrow?: string;
   subtitle?: string;
   back?: () => void;
   action?: HeaderAction;
   brand?: boolean;
+  /** Optional content rendered inside the header, below the title (e.g. a search bar). */
+  children?: ReactNode;
 }) {
+  const isRoot = !back;
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, isRoot ? styles.headerRoot : styles.headerDetail]}>
       <StatusBar style="light" />
-      <View style={styles.topRow}>
-        {back ? <HeaderActionButton label="Volver" icon="back" onPress={back} /> : brand ? <View style={styles.logo}><BrandLogo width={116} /></View> : <View />}
-        {action ? <HeaderActionButton {...action} /> : back ? <View style={styles.buttonSpacer} /> : null}
-      </View>
+      {back || brand || action ? (
+        <View style={styles.topRow}>
+          {back ? <HeaderActionButton label="Volver" icon="back" onPress={back} /> : brand ? <Wordmark /> : <View />}
+          {action ? <HeaderActionButton {...action} /> : null}
+        </View>
+      ) : null}
       <View style={styles.copy}>
         {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
-        <Text style={styles.title}>{title}</Text>
+        <Text accessibilityRole="header" style={isRoot ? styles.titleRoot : styles.titleDetail}>{title}</Text>
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
+      {children}
     </View>
   );
 }
 
-function HeaderActionButton({ label, icon, onPress, badgeCount }: HeaderAction) {
+export function Wordmark() {
   return (
-    <Pressable accessibilityLabel={label} accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
+    <Text accessibilityLabel="Contrátame!" accessibilityRole="text" style={styles.wordmark}>
+      Contrátame<Text style={styles.wordmarkAccent}>!</Text>
+    </Text>
+  );
+}
+
+function HeaderActionButton({ label, icon, onPress, badgeCount }: HeaderAction) {
+  const hasBadge = typeof badgeCount === 'number' && badgeCount > 0;
+  return (
+    <PressableScale
+      accessibilityLabel={hasBadge ? `${label}, ${badgeCount} sin leer` : label}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={styles.button}
+    >
       <AppIcon name={icon} color={colors.white} size={sizing.iconMd} />
-      {typeof badgeCount === 'number' && badgeCount > 0 ? (
+      {hasBadge ? (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{badgeCount > 99 ? '99+' : badgeCount}</Text>
         </View>
       ) : null}
-    </Pressable>
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { backgroundColor: colors.navyDeep, paddingHorizontal: sizing.screenPadding, paddingTop: spacing.lg, paddingBottom: spacing.xxl, borderBottomLeftRadius: radii.xl, borderBottomRightRadius: radii.xl, gap: spacing.xl },
+  header: {
+    backgroundColor: colors.navyDeep,
+    paddingHorizontal: sizing.screenPadding,
+    paddingTop: spacing.lg,
+    borderBottomLeftRadius: radii.hero,
+    borderBottomRightRadius: radii.hero,
+  },
+  headerRoot: { paddingBottom: spacing.xxl, gap: spacing.xl },
+  headerDetail: { paddingBottom: spacing.xl, gap: spacing.lg },
   topRow: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  logo: { backgroundColor: colors.white, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radii.md },
-  button: { width: sizing.touchTarget, height: sizing.touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.navySoft },
-  buttonPressed: { opacity: 0.7 },
-  badge: { position: 'absolute', top: -3, right: -3, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xs, borderRadius: radii.pill, backgroundColor: colors.green, borderWidth: 2, borderColor: colors.navyDeep },
+  wordmark: { color: colors.white, fontSize: 20, lineHeight: 26, fontWeight: '800', letterSpacing: -0.5 },
+  wordmarkAccent: { color: colors.green },
+  button: {
+    width: sizing.touchTarget,
+    height: sizing.touchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.lg,
+    backgroundColor: colors.onDarkSurface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.onDarkBorder,
+  },
+  badge: { position: 'absolute', top: -4, right: -4, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xs, borderRadius: radii.pill, backgroundColor: colors.green, borderWidth: 2, borderColor: colors.navyDeep },
   badgeText: { color: colors.navyDeep, fontSize: 10, lineHeight: 12, fontWeight: '800' },
-  buttonSpacer: { width: sizing.touchTarget },
-  copy: { gap: spacing.xs },
-  eyebrow: { color: colors.textOnDarkMuted, ...typography.label },
-  title: { color: colors.white, ...typography.display },
-  subtitle: { color: colors.textOnDark, ...typography.label },
+  copy: { gap: spacing.sm },
+  eyebrow: { color: colors.successOnDark, fontSize: 12, lineHeight: 16, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' },
+  titleRoot: { color: colors.white, ...typography.hero },
+  titleDetail: { color: colors.white, fontSize: 28, lineHeight: 32, fontWeight: '800', letterSpacing: -0.7 },
+  subtitle: { color: colors.textOnDarkMuted, ...typography.body },
 });

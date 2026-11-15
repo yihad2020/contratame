@@ -17,3 +17,5 @@
 - `IMP-013-mod-11-notifications.md` — Primera implementación de `MOD-11`, validación automatizada completa.
 - `IMP-014-mod-12-favorites-reports.md` — Primera implementación de `MOD-12`, validación pendiente.
 - `IMP-015-mod-13-certification.md` — Primera implementación de `MOD-13`, validación automatizada completa; E2E manual diferido.
+- `IMP-016-ui-03-home-redesign.md` — Rediseño visual `UI-03` de Inicio; revisión Android manual pendiente.
+- `IMP-017-ui-04-app-wide-redesign.md` — Rediseño visual `UI-04` de las pantallas autenticadas; revisión Android manual pendiente.

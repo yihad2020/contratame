@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
 
 export function ChoiceCard({
@@ -20,11 +21,12 @@ export function ChoiceCard({
   const iconBackground = accent === 'green' ? colors.greenSoft : colors.primarySoft;
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityHint="Abre información sobre esta opción"
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      pressedScale={0.985}
+      style={styles.card}
     >
       <View style={[styles.iconBox, { backgroundColor: iconBackground }]}>
         <AppIcon name={icon} color={iconColor} size={sizing.iconLg} />
@@ -34,7 +36,7 @@ export function ChoiceCard({
         <Text style={styles.description}>{description}</Text>
       </View>
       <AppIcon name="chevronRight" color={colors.textSecondary} size={sizing.iconSm} />
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -49,11 +51,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radii.lg,
+    borderRadius: radii.xxl,
   },
-  pressed: { backgroundColor: colors.surfaceMuted, borderColor: colors.borderStrong },
   iconBox: { width: 44, height: 44, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1, gap: spacing.xs },
-  title: { color: colors.text, ...typography.bodyStrong },
+  title: { color: colors.text, ...typography.bodyStrong, letterSpacing: -0.2 },
   description: { color: colors.textSecondary, ...typography.caption },
 });

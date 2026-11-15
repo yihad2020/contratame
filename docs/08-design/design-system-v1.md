@@ -106,7 +106,7 @@ La mascota es identidad de marca y no relleno decorativo. En UI-01 aparece en:
 - splash nativo;
 - estado JS de hidratación inicial.
 
-No aparece en formularios, inicio, perfil ni estados de error/bloqueo. Podrá reutilizarse en onboarding o estados vacíos importantes cuando exista contenido funcional que lo justifique.
+No aparece en formularios, perfil ni estados de error/bloqueo. En Inicio se usa una sola vez como identificador compacto de marca en la cabecera y acceso al perfil; no se repite en el contenido. Podrá reutilizarse en onboarding o estados vacíos importantes cuando exista contenido funcional que lo justifique.
 
 ## 9. Accesibilidad básica
 

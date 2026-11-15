@@ -1,15 +1,17 @@
 import * as Location from 'expo-location';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
 import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { getCategoryIcon } from '@/modules/marketplace/category-icons';
 import { MarketplaceFilters } from '@/modules/marketplace/components/MarketplaceFilters';
 import { MarketplaceResultCard } from '@/modules/marketplace/components/MarketplaceResultCard';
 import { marketplaceFailureMessage } from '@/modules/marketplace/marketplace-errors';
@@ -25,19 +27,28 @@ import type {
 } from '@/modules/marketplace/types';
 import {
   emptyMarketplaceDraft,
+  marketplaceDraftFromRouteParams,
   mergeMarketplaceResults,
   validateMarketplaceFilters,
   withoutMarketplaceAppliedLocation,
   withoutMarketplaceDraftLocation,
 } from '@/modules/marketplace/validation';
 
-const initialFilterCheck = validateMarketplaceFilters(emptyMarketplaceDraft);
-if (!initialFilterCheck.ok) throw new Error('Invalid default marketplace filters');
-const initialFilters = initialFilterCheck.value;
+const defaultFilterCheck = validateMarketplaceFilters(emptyMarketplaceDraft);
+if (!defaultFilterCheck.ok) throw new Error('Invalid default marketplace filters');
+const defaultFilters = defaultFilterCheck.value;
 
 export function ExploreScreen() {
-  const [draft, setDraft] = useState<MarketplaceFilterDraft>({ ...emptyMarketplaceDraft });
-  const [applied, setApplied] = useState<AppliedFilters>(initialFilters);
+  const routeParams = useLocalSearchParams<{ q?: string; categoryId?: string }>();
+  const [initial] = useState(() => {
+    const routeDraft = marketplaceDraftFromRouteParams(routeParams);
+    const checked = validateMarketplaceFilters(routeDraft);
+    return checked.ok
+      ? { draft: routeDraft, filters: checked.value }
+      : { draft: { ...emptyMarketplaceDraft }, filters: defaultFilters };
+  });
+  const [draft, setDraft] = useState<MarketplaceFilterDraft>(initial.draft);
+  const [applied, setApplied] = useState<AppliedFilters>(initial.filters);
   const [categories, setCategories] = useState<MarketplaceCategory[]>([]);
   const [results, setResults] = useState<MarketplaceResult[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -75,7 +86,7 @@ export function ExploreScreen() {
 
   useEffect(() => {
     const request = ++requestRef.current;
-    void searchMarketplace(initialFilters, 0)
+    void searchMarketplace(initial.filters, 0)
       .then((next) => {
         if (request !== requestRef.current) return;
         setResults(next);
@@ -91,7 +102,7 @@ export function ExploreScreen() {
     void loadMarketplaceCategories()
       .then(setCategories)
       .catch((cause) => setCategoryFailure(marketplaceFailureMessage(cause, 'No pudimos cargar las categorías. Puedes seguir buscando por texto.', 'load categories')));
-  }, []);
+  }, [initial.filters]);
 
   function applyFilters() {
     const checked = validateMarketplaceFilters(draft);
@@ -158,64 +169,104 @@ export function ExploreScreen() {
     <Screen
       contentStyle={styles.screen}
       footer={<MarketplaceNav active="explore" />}
-      header={<MarketplaceHeader brand title="Explorar" subtitle="Encuentra profesionales aprobados para tu servicio." />}
+      header={(
+        <MarketplaceHeader brand title="Explorar" subtitle="Profesionales aprobados para tu servicio.">
+          <View style={[styles.searchBar, errors.query && styles.searchError]}>
+            <AppIcon name="search" color={colors.navyDeep} size={sizing.iconMd} />
+            <TextInput
+              accessibilityLabel="Buscar oficios o servicios"
+              maxLength={100}
+              onChangeText={(query) => {
+                setDraft((current) => ({ ...current, query }));
+                setErrors((current) => {
+                  const next = { ...current };
+                  delete next.query;
+                  return next;
+                });
+              }}
+              onSubmitEditing={applyFilters}
+              placeholder="Busca un oficio o servicio"
+              placeholderTextColor={colors.textSecondary}
+              returnKeyType="search"
+              style={styles.searchInput}
+              value={draft.query}
+            />
+            <PressableScale
+              accessibilityLabel={filtersVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: filtersVisible }}
+              onPress={() => setFiltersVisible((current) => !current)}
+              style={[styles.iconButton, filtersVisible ? styles.iconButtonActive : styles.iconButtonSoft]}
+            >
+              <AppIcon name="filter" color={filtersVisible ? colors.white : colors.navyDeep} size={sizing.iconMd} />
+            </PressableScale>
+            <PressableScale accessibilityLabel="Buscar" accessibilityRole="button" onPress={applyFilters} style={[styles.iconButton, styles.iconButtonPrimary]}>
+              {loading && results.length > 0
+                ? <ActivityIndicator color={colors.white} />
+                : <AppIcon name="arrowRight" color={colors.white} size={sizing.iconMd} />}
+            </PressableScale>
+          </View>
+          {errors.query ? <Text style={styles.errorOnDark}>{errors.query}</Text> : null}
+        </MarketplaceHeader>
+      )}
     >
-      <View style={styles.searchRow}>
-        <View style={[styles.searchShell, errors.query && styles.searchError]}>
-          <AppIcon name="search" color={colors.textSecondary} size={sizing.iconMd} />
-          <TextInput
-            accessibilityLabel="Buscar oficios o servicios"
-            onChangeText={(query) => {
-              setDraft((current) => ({ ...current, query }));
-              setErrors((current) => {
-                const next = { ...current };
-                delete next.query;
-                return next;
-              });
-            }}
-            onSubmitEditing={applyFilters}
-            placeholder="Buscar oficios o servicios"
-            placeholderTextColor={colors.textSecondary}
-            returnKeyType="search"
-            style={styles.searchInput}
-            value={draft.query}
-          />
-        </View>
-        <Pressable accessibilityLabel="Mostrar filtros" accessibilityRole="button" onPress={() => setFiltersVisible((current) => !current)} style={({ pressed }) => [styles.filterButton, pressed && styles.pressed]}>
-          <AppIcon name="filter" color={colors.white} size={sizing.iconMd} />
-        </Pressable>
-      </View>
-      {errors.query ? <Text style={styles.errorText}>{errors.query}</Text> : null}
-      <View style={styles.quickActions}>
-        <View style={styles.quickAction}><AppButton label="Buscar" icon="search" loading={loading && results.length > 0} onPress={applyFilters} /></View>
-        <View style={styles.quickAction}><AppButton label={draft.location ? 'Actualizar ubicación' : 'Cerca de mí'} icon="location" variant="secondary" loading={locating} onPress={() => void locateCustomer()} /></View>
-      </View>
+      <ScrollView
+        horizontal
+        contentContainerStyle={styles.chipRow}
+        keyboardShouldPersistTaps="handled"
+        showsHorizontalScrollIndicator={false}
+        style={styles.chipScroller}
+      >
+        <PressableScale
+          accessibilityLabel={draft.location ? 'Actualizar ubicación' : 'Buscar cerca de mí'}
+          accessibilityRole="button"
+          accessibilityState={{ busy: locating, selected: Boolean(draft.location) }}
+          onPress={() => void locateCustomer()}
+          pressedScale={0.94}
+          style={[styles.chip, draft.location ? styles.chipSelected : styles.chipLocation]}
+        >
+          {locating ? <ActivityIndicator color={draft.location ? colors.white : colors.primary} size="small" /> : <AppIcon name="location" color={draft.location ? colors.white : colors.primary} size={sizing.iconSm} />}
+          <Text style={[styles.chipLabel, draft.location ? styles.chipLabelSelected : styles.chipLabelLocation]}>Cerca de mí</Text>
+        </PressableScale>
+        {categories.map((category) => {
+          const selected = draft.categoryId === category.id;
+          return (
+            <PressableScale
+              key={category.id}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              onPress={() => selectCategory(category.id)}
+              pressedScale={0.94}
+              style={[styles.chip, selected && styles.chipSelected]}
+            >
+              <AppIcon name={getCategoryIcon(category.icon_key)} color={selected ? colors.white : colors.navy} size={sizing.iconSm} />
+              <Text style={[styles.chipLabel, selected && styles.chipLabelSelected]}>{category.name}</Text>
+            </PressableScale>
+          );
+        })}
+      </ScrollView>
+      {categoryFailure ? <ErrorMessage>{categoryFailure}</ErrorMessage> : null}
       {locationNotice ? <FeedbackMessage tone="info">{locationNotice}</FeedbackMessage> : null}
-      <View style={styles.categories}>
-        <Text style={styles.sectionTitle}>Categorías</Text>
-        {categoryFailure ? <ErrorMessage>{categoryFailure}</ErrorMessage> : null}
-        <View style={styles.categoryWrap}>
-          {categories.map((category) => {
-            const selected = draft.categoryId === category.id;
-            return (
-              <Pressable key={category.id} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => selectCategory(category.id)} style={[styles.categoryChip, selected && styles.categorySelected]}>
-                <Text style={[styles.categoryLabel, selected && styles.categoryLabelSelected]}>{category.name}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
       {filtersVisible ? <MarketplaceFilters draft={draft} errors={errors} busy={loading} onChange={setDraft} onApply={applyFilters} onClear={clearFilters} /> : null}
       <View style={styles.resultsHeader}>
-        <View>
-          <Text style={styles.sectionTitle}>Profesionales</Text>
+        <View style={styles.resultsCopy}>
+          <Text accessibilityRole="header" style={styles.sectionTitle}>Profesionales</Text>
           {!loading && !failure ? <Text style={styles.resultCount}>{totalCount} resultado{totalCount === 1 ? '' : 's'}</Text> : null}
         </View>
-        <Pressable accessibilityLabel="Actualizar resultados" accessibilityRole="button" onPress={() => void loadPage(applied, 0, true)} style={({ pressed }) => [styles.refresh, pressed && styles.pressed]}><AppIcon name="refresh" color={colors.primary} size={sizing.iconMd} /></Pressable>
+        <PressableScale accessibilityLabel="Actualizar resultados" accessibilityRole="button" onPress={() => void loadPage(applied, 0, true)} style={styles.refresh}>
+          <AppIcon name="refresh" color={colors.navy} size={sizing.iconMd} />
+        </PressableScale>
       </View>
       {loading && results.length === 0 ? <View style={styles.loading}><ActivityIndicator color={colors.primary} /><Text style={styles.loadingText}>Buscando profesionales…</Text></View> : null}
       {failure ? <View style={styles.state}><ErrorMessage>{failure}</ErrorMessage><AppButton label="Reintentar" onPress={() => void loadPage(applied, 0, true)} /></View> : null}
-      {!loading && !failure && results.length === 0 ? <View style={styles.empty}><Text style={styles.emptyTitle}>No encontramos profesionales con estos filtros.</Text><Text style={styles.emptyCopy}>Prueba otra categoría, zona o rango de precio.</Text><AppButton label="Limpiar filtros" variant="secondary" onPress={clearFilters} /></View> : null}
+      {!loading && !failure && results.length === 0 ? (
+        <View style={styles.empty}>
+          <View style={styles.emptyIcon}><AppIcon name="search" color={colors.primary} size={sizing.iconLg} /></View>
+          <Text style={styles.emptyTitle}>No encontramos profesionales con estos filtros.</Text>
+          <Text style={styles.emptyCopy}>Prueba otra categoría, zona o rango de precio.</Text>
+          <AppButton label="Limpiar filtros" variant="secondary" onPress={clearFilters} />
+        </View>
+      ) : null}
       <View style={styles.resultList}>
         {results.map((result) => <MarketplaceResultCard key={result.worker_id} result={result} onOpen={() => router.push({ pathname: '/(app)/worker/[workerId]', params: { workerId: result.worker_id } } as never)} />)}
       </View>
@@ -226,30 +277,33 @@ export function ExploreScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.lg, paddingTop: spacing.lg },
-  searchRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
-  searchShell: { flex: 1, minHeight: sizing.inputHeight, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radii.lg },
+  screen: { gap: spacing.lg, paddingTop: spacing.xl },
+  searchBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, paddingLeft: spacing.lg, borderRadius: radii.xxl, backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.surface },
   searchError: { borderColor: colors.danger },
-  searchInput: { flex: 1, minHeight: sizing.inputHeight - 2, color: colors.text, ...typography.body },
-  filterButton: { width: sizing.inputHeight, height: sizing.inputHeight, borderRadius: radii.lg, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary },
-  pressed: { opacity: 0.72 },
-  errorText: { color: colors.danger, ...typography.caption },
-  quickActions: { flexDirection: 'row', gap: spacing.sm },
-  quickAction: { flex: 1 },
-  categories: { gap: spacing.sm },
-  sectionTitle: { color: colors.navy, ...typography.section },
-  categoryWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  categoryChip: { minHeight: sizing.touchTarget, justifyContent: 'center', paddingHorizontal: spacing.md, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
-  categorySelected: { backgroundColor: colors.primarySoft, borderColor: colors.primary },
-  categoryLabel: { color: colors.textSecondary, ...typography.label },
-  categoryLabelSelected: { color: colors.primary },
-  resultsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  searchInput: { flex: 1, minHeight: sizing.touchTarget, color: colors.text, ...typography.bodyStrong, fontWeight: '600', letterSpacing: -0.2 },
+  iconButton: { width: sizing.touchTarget, height: sizing.touchTarget, borderRadius: radii.lg, alignItems: 'center', justifyContent: 'center' },
+  iconButtonSoft: { backgroundColor: colors.surfaceMuted },
+  iconButtonActive: { backgroundColor: colors.navyDeep },
+  iconButtonPrimary: { backgroundColor: colors.primary },
+  errorOnDark: { color: colors.warningOnDark, ...typography.caption },
+  chipScroller: { marginHorizontal: -sizing.screenPadding },
+  chipRow: { gap: spacing.sm, paddingHorizontal: sizing.screenPadding },
+  chip: { minHeight: sizing.touchTarget - 4, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  chipLocation: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  chipSelected: { borderColor: colors.navyDeep, backgroundColor: colors.navyDeep },
+  chipLabel: { color: colors.text, ...typography.label },
+  chipLabelLocation: { color: colors.primaryPressed },
+  chipLabelSelected: { color: colors.white },
+  resultsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
+  resultsCopy: { gap: spacing.xxs },
+  sectionTitle: { color: colors.navy, ...typography.sectionTight },
   resultCount: { color: colors.textSecondary, ...typography.caption },
-  refresh: { width: sizing.touchTarget, height: sizing.touchTarget, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primarySoft },
+  refresh: { width: sizing.touchTarget, height: sizing.touchTarget, borderRadius: radii.lg, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   loading: { minHeight: 160, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
   loadingText: { color: colors.textSecondary, ...typography.body },
   state: { gap: spacing.md },
-  empty: { gap: spacing.md, padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface, alignItems: 'stretch' },
+  empty: { gap: spacing.md, padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface, alignItems: 'stretch' },
+  emptyIcon: { alignSelf: 'center', width: 56, height: 56, borderRadius: radii.xl, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primarySoft },
   emptyTitle: { color: colors.text, textAlign: 'center', ...typography.section },
   emptyCopy: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
   resultList: { gap: spacing.md },

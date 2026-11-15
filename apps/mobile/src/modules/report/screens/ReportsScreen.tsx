@@ -49,7 +49,7 @@ export function ReportsScreen() {
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.md, paddingTop: spacing.xl }, state: { minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: spacing.md, padding: spacing.xl },
-  card: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface }, row: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }, copy: { flex: 1, gap: spacing.xs },
+  card: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface }, row: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }, copy: { flex: 1, gap: spacing.xs },
   title: { color: colors.navy, ...typography.bodyStrong }, muted: { color: colors.textSecondary, ...typography.body }, description: { color: colors.text, ...typography.body },
 });
 

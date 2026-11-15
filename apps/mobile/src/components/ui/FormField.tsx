@@ -10,19 +10,22 @@ type FormFieldProps = Omit<TextInputProps, 'style'> & {
   helperText?: string;
 };
 
-export function FormField({ label, error, helperText, secureTextEntry = false, editable = true, multiline = false, ...inputProps }: FormFieldProps) {
+export function FormField({ label, error, helperText, secureTextEntry = false, editable = true, multiline = false, onFocus, onBlur, ...inputProps }: FormFieldProps) {
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [focused, setFocused] = useState(false);
   const canTogglePassword = secureTextEntry;
 
   return (
     <View style={styles.group}>
       <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputShell, !editable && styles.inputDisabled, error && styles.inputError]}>
+      <View style={[styles.inputShell, focused && styles.inputFocused, !editable && styles.inputDisabled, error && styles.inputError]}>
         <TextInput
           {...inputProps}
           accessibilityLabel={label}
           editable={editable}
           multiline={multiline}
+          onBlur={(event) => { setFocused(false); onBlur?.(event); }}
+          onFocus={(event) => { setFocused(true); onFocus?.(event); }}
           placeholderTextColor={colors.textSecondary}
           secureTextEntry={secureTextEntry && !passwordVisible}
           selectionColor={colors.primary}
@@ -72,6 +75,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  inputFocused: { borderColor: colors.primary, borderWidth: 1.5 },
   inputError: { borderColor: colors.danger },
   inputDisabled: { backgroundColor: colors.surfaceMuted },
   error: { color: colors.danger, ...typography.caption },

@@ -31,5 +31,5 @@ export function ReportDetailScreen({ reportIdParam }: { reportIdParam: string | 
   </Screen>;
 }
 
-const styles = StyleSheet.create({ screen: { gap: spacing.lg, paddingTop: spacing.xl }, card: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface }, row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.md }, title: { flex: 1, color: colors.navy, ...typography.section }, label: { color: colors.textSecondary, ...typography.caption }, value: { color: colors.text, ...typography.body } });
+const styles = StyleSheet.create({ screen: { gap: spacing.lg, paddingTop: spacing.xl }, card: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface }, row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.md }, title: { flex: 1, color: colors.navy, ...typography.section }, label: { color: colors.textSecondary, ...typography.caption }, value: { color: colors.text, ...typography.body } });
 

@@ -1,7 +1,11 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Animated, Platform, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { colors, motion, radii, sizing, spacing, typography } from '@/constants/theme';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const useNativeDriver = Platform.OS !== 'web';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -23,6 +27,9 @@ export function AppButton({
   icon,
 }: AppButtonProps) {
   const isDisabled = disabled || loading;
+  const [scale] = useState(() => new Animated.Value(1));
+  const springTo = (toValue: number, config: { speed: number; bounciness: number }) =>
+    Animated.spring(scale, { toValue, useNativeDriver, ...config }).start();
   const foreground = variant === 'primary' || variant === 'danger' ? colors.white : colors.primary;
   const variantStyle: Record<ButtonVariant, ViewStyle> = {
     primary: styles.primary,
@@ -38,12 +45,15 @@ export function AppButton({
   };
 
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
       accessibilityState={{ busy: loading, disabled: isDisabled }}
       disabled={isDisabled}
       onPress={onPress}
+      onPressIn={() => springTo(motion.pressedScale, motion.pressSpring)}
+      onPressOut={() => springTo(1, motion.releaseSpring)}
       style={({ pressed }) => [
+        { transform: [{ scale }] },
         styles.button,
         variantStyle[variant],
         pressed && !isDisabled && pressedStyle[variant],
@@ -59,7 +69,7 @@ export function AppButton({
           <Text style={[styles.label, { color: foreground }]}>{label}</Text>
         </View>
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
@@ -73,7 +83,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
-  label: { ...typography.bodyStrong },
+  label: { ...typography.bodyStrong, letterSpacing: -0.2 },
   primary: { backgroundColor: colors.primary, borderColor: colors.primary },
   primaryPressed: { backgroundColor: colors.primaryPressed, borderColor: colors.primaryPressed },
   primaryDisabled: { backgroundColor: colors.primaryDisabled, borderColor: colors.primaryDisabled },

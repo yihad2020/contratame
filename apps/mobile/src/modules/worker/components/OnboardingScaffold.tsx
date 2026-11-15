@@ -30,7 +30,7 @@ export function OnboardingScaffold({
     <Screen contentStyle={styles.screen} header={<MarketplaceHeader back={goBack} eyebrow={`PERFIL PROFESIONAL · PASO ${step} DE 6`} title={title} subtitle={description} />}>
       <View style={styles.progressBlock}>
         <View style={styles.progressCopy}>
-          <Text style={styles.progressLabel}>Tu progreso</Text>
+          <Text style={styles.progressLabel}>Paso {step} de 6</Text>
           <Text style={styles.progressName}>{Math.round((step / 6) * 100)}%</Text>
         </View>
         <View accessibilityLabel={`Paso ${step} de 6`} style={styles.progressSegments}>
@@ -50,12 +50,12 @@ export function OnboardingScaffold({
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, paddingTop: spacing.xl },
-  progressBlock: { gap: spacing.md, padding: spacing.lg, borderRadius: radii.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  progressBlock: { gap: spacing.sm, paddingHorizontal: spacing.xs },
   progressCopy: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
   progressLabel: { color: colors.navy, ...typography.label },
-  progressName: { flex: 1, textAlign: 'right', color: colors.primary, ...typography.label },
+  progressName: { flex: 1, textAlign: 'right', color: colors.textSecondary, ...typography.label },
   progressSegments: { flexDirection: 'row', gap: spacing.xs },
-  segment: { flex: 1, height: 6, backgroundColor: colors.border, borderRadius: radii.pill },
+  segment: { flex: 1, height: 4, backgroundColor: colors.border, borderRadius: radii.pill },
   segmentActive: { backgroundColor: colors.green },
   content: { gap: spacing.md },
   actions: { gap: spacing.sm, paddingTop: spacing.sm },

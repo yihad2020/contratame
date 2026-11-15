@@ -1,13 +1,13 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ErrorMessage } from '@/components/ui/Typography';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
 import { chatFailureMessage } from '@/modules/chat/chat-errors';
@@ -74,15 +74,17 @@ export function ChatListScreen() {
       ) : null}
       {!loading && !failure && items.length === 0 ? (
         <View style={styles.empty}>
-          <View style={styles.emptyIcon}><AppIcon name="chat" size={sizing.iconLg} /></View>
+          <View style={styles.emptyIcon}><AppIcon name="chat" color={colors.primary} size={sizing.iconLg} /></View>
           <Text style={styles.emptyTitle}>Aún no tienes conversaciones</Text>
           <Text style={styles.muted}>El chat aparece cuando envías o recibes una solicitud directa de servicio.</Text>
           <AppButton label="Ver solicitudes" variant="secondary" onPress={() => router.push('/(app)/requests' as never)} />
         </View>
       ) : null}
-      <View style={styles.list}>
-        {items.map((item) => <ConversationCard key={item.conversation_id} item={item} />)}
-      </View>
+      {items.length > 0 ? (
+        <View style={styles.list}>
+          {items.map((item, index) => <ConversationRow key={item.conversation_id} item={item} first={index === 0} />)}
+        </View>
+      ) : null}
       {pageFailure ? (
         <View style={styles.feedback}>
           <ErrorMessage>{pageFailure}</ErrorMessage>
@@ -94,50 +96,52 @@ export function ChatListScreen() {
   );
 }
 
-function ConversationCard({ item }: { item: ChatConversationListItem }) {
+function ConversationRow({ item, first }: { item: ChatConversationListItem; first: boolean }) {
+  const active = item.conversation_status === 'active';
+  const initials = item.counterpart_display_name.split(/\s+/).map((part) => part[0] ?? '').join('').slice(0, 2).toUpperCase();
   return (
-    <Pressable
+    <PressableScale
+      accessibilityHint="Abre la conversación"
+      accessibilityLabel={`${item.counterpart_display_name}, ${item.service_title}, ${active ? 'activa' : 'cerrada'}`}
       accessibilityRole="button"
       onPress={() => router.push({ pathname: '/(app)/chat/[conversationId]', params: { conversationId: item.conversation_id } } as never)}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      pressedScale={0.985}
+      style={[styles.row, !first && styles.rowDivider]}
     >
-      <View style={styles.cardTop}>
-        <View style={styles.avatar}><AppIcon name="account" color={colors.primary} /></View>
-        <View style={styles.cardCopy}>
-          <Text style={styles.name}>{item.counterpart_display_name}</Text>
-          <Text style={styles.service}>{item.service_title}</Text>
+      <View style={styles.avatar}>
+        <Text style={styles.avatarText}>{initials}</Text>
+        {active ? <View style={styles.activeDot} /> : null}
+      </View>
+      <View style={styles.rowCopy}>
+        <View style={styles.rowTop}>
+          <Text numberOfLines={1} style={styles.name}>{item.counterpart_display_name}</Text>
+          <Text style={styles.time}>{formatChatActivity(item.activity_at)}</Text>
         </View>
-        <StatusBadge label={item.conversation_status === 'active' ? 'Activa' : 'Cerrada'} tone={item.conversation_status === 'active' ? 'success' : 'danger'} />
+        <Text numberOfLines={1} style={styles.service}>{item.service_title}{active ? '' : ' · Cerrada'}</Text>
+        <Text numberOfLines={1} style={styles.preview}>{messagePreview(item)}</Text>
       </View>
-      <Text numberOfLines={2} style={styles.preview}>{messagePreview(item)}</Text>
-      <View style={styles.cardBottom}>
-        <Text style={styles.time}>{formatChatActivity(item.activity_at)}</Text>
-        <View style={styles.open}><Text style={styles.openLabel}>Abrir</Text><AppIcon name="chevronRight" size={sizing.iconSm} /></View>
-      </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, paddingTop: spacing.xl },
   state: { minHeight: 220, alignItems: 'center', justifyContent: 'center', gap: spacing.md, padding: spacing.xl },
-  empty: { minHeight: 260, justifyContent: 'center', gap: spacing.md, padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  emptyIcon: { width: 58, height: 58, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft },
-  emptyTitle: { color: colors.navy, textAlign: 'center', ...typography.title },
+  empty: { minHeight: 260, justifyContent: 'center', gap: spacing.md, padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
+  emptyIcon: { width: 56, height: 56, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.xl, backgroundColor: colors.primarySoft },
+  emptyTitle: { color: colors.navy, textAlign: 'center', ...typography.title, letterSpacing: -0.4 },
   muted: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
-  list: { gap: spacing.md },
+  list: { borderRadius: radii.xxl, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, overflow: 'hidden' },
   feedback: { gap: spacing.md },
-  card: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  pressed: { opacity: 0.76 },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  avatar: { width: sizing.touchTarget, height: sizing.touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft },
-  cardCopy: { flex: 1, gap: spacing.xs },
-  name: { color: colors.navy, ...typography.section },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, minHeight: 80, backgroundColor: colors.surface },
+  rowDivider: { borderTopWidth: 1, borderTopColor: colors.border },
+  avatar: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center', borderRadius: radii.lg, backgroundColor: colors.primarySoft },
+  avatarText: { color: colors.primary, fontSize: 17, lineHeight: 22, fontWeight: '800', letterSpacing: -0.3 },
+  activeDot: { position: 'absolute', right: -3, bottom: -3, width: 14, height: 14, borderRadius: radii.pill, backgroundColor: colors.green, borderWidth: 2, borderColor: colors.surface },
+  rowCopy: { flex: 1, gap: spacing.xxs },
+  rowTop: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
+  name: { flex: 1, color: colors.navy, ...typography.bodyStrong, letterSpacing: -0.2 },
+  time: { color: colors.textSecondary, fontSize: 12, lineHeight: 16 },
   service: { color: colors.primary, ...typography.caption, fontWeight: '700' },
-  preview: { color: colors.text, ...typography.body },
-  cardBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border },
-  time: { flex: 1, color: colors.textSecondary, ...typography.caption },
-  open: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  openLabel: { color: colors.primary, ...typography.label },
+  preview: { color: colors.textSecondary, ...typography.caption },
 });
-

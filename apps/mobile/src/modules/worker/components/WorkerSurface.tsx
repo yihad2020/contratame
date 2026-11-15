@@ -13,6 +13,6 @@ export function WorkerSurface({ title, children }: PropsWithChildren<{ title?: s
 }
 
 const styles = StyleSheet.create({
-  surface: { gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl },
+  surface: { gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl },
   title: { color: colors.navy, ...typography.section },
 });

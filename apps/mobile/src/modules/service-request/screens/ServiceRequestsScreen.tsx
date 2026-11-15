@@ -1,11 +1,14 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
+import { MenuList } from '@/components/ui/MenuList';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Screen } from '@/components/ui/Screen';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ErrorMessage } from '@/components/ui/Typography';
@@ -76,15 +79,13 @@ export function ServiceRequestsScreen() {
       footer={<MarketplaceNav active="requests" />}
       header={<MarketplaceHeader brand title="Solicitudes" subtitle="Consulta solicitudes enviadas y recibidas." />}
     >
-      <View accessibilityRole="tablist" style={styles.switcher}>
-        <PerspectiveButton active={perspective === 'customer'} label="Como cliente" onPress={() => changePerspective('customer')} />
-        <PerspectiveButton active={perspective === 'worker'} label="Como profesional" onPress={() => changePerspective('worker')} />
-      </View>
-      <AppButton
-        label="Ver mis trabajos contratados"
-        icon="briefcase"
-        variant="secondary"
-        onPress={() => router.push('/(app)/bookings' as never)}
+      <SegmentedControl
+        options={[{ value: 'customer', label: 'Como cliente' }, { value: 'worker', label: 'Como profesional' }]}
+        value={perspective}
+        onChange={changePerspective}
+      />
+      <MenuList
+        items={[{ key: 'bookings', title: 'Mis trabajos contratados', description: 'Contrataciones programadas y su estado', icon: 'briefcase', onPress: () => router.push('/(app)/bookings' as never) }]}
       />
       {!loading && !failure ? <Text style={styles.count}>{totalCount} solicitud{totalCount === 1 ? '' : 'es'}</Text> : null}
       {loading && items.length === 0 ? <View style={styles.loading}><ActivityIndicator color={colors.primary} /><Text style={styles.muted}>Cargando solicitudes…</Text></View> : null}
@@ -108,20 +109,14 @@ export function ServiceRequestsScreen() {
   );
 }
 
-function PerspectiveButton({ active, label, onPress }: { active: boolean; label: string; onPress: () => void }) {
-  return (
-    <Pressable accessibilityRole="tab" accessibilityState={{ selected: active }} onPress={onPress} style={[styles.switchButton, active && styles.switchActive]}>
-      <Text style={[styles.switchLabel, active && styles.switchLabelActive]}>{label}</Text>
-    </Pressable>
-  );
-}
-
 function RequestCard({ item }: { item: ServiceRequestListItem }) {
   return (
-    <Pressable
+    <PressableScale
+      accessibilityHint="Abre el detalle de la solicitud"
       accessibilityRole="button"
       onPress={() => router.push({ pathname: '/(app)/request/[requestId]', params: { requestId: item.request_id } } as never)}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      pressedScale={0.985}
+      style={styles.card}
     >
       <View style={styles.cardTop}>
         <View style={styles.cardCopy}>
@@ -131,10 +126,11 @@ function RequestCard({ item }: { item: ServiceRequestListItem }) {
         <StatusBadge label={serviceRequestStatusLabels[item.status]} tone={statusTone(item.status)} />
       </View>
       <Text numberOfLines={2} style={styles.description}>{item.description}</Text>
-      <View style={styles.metaRow}><AppIcon name="location" color={colors.textSecondary} size={sizing.iconSm} /><Text style={styles.meta}>{item.job_area_label}</Text></View>
-      <View style={styles.metaRow}><AppIcon name="time" color={colors.textSecondary} size={sizing.iconSm} /><Text style={styles.meta}>{formatRequestDate(item.preferred_date)}{item.preferred_time ? ` · ${item.preferred_time}` : ''}</Text></View>
-      <View style={styles.openRow}><Text style={styles.openLabel}>Ver detalle</Text><AppIcon name="chevronRight" size={sizing.iconSm} /></View>
-    </Pressable>
+      <View style={styles.metaBox}>
+        <View style={styles.metaRow}><AppIcon name="location" color={colors.textSecondary} size={sizing.iconSm} /><Text numberOfLines={1} style={styles.meta}>{item.job_area_label}</Text></View>
+        <View style={styles.metaRow}><AppIcon name="time" color={colors.textSecondary} size={sizing.iconSm} /><Text numberOfLines={1} style={styles.meta}>{formatRequestDate(item.preferred_date)}{item.preferred_time ? ` · ${item.preferred_time}` : ''}</Text></View>
+      </View>
+    </PressableScale>
   );
 }
 
@@ -146,28 +142,21 @@ function statusTone(status: ServiceRequestStatus): 'success' | 'warning' | 'dang
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, paddingTop: spacing.xl },
-  switcher: { flexDirection: 'row', padding: spacing.xs, borderRadius: radii.lg, backgroundColor: colors.surfaceMuted },
-  switchButton: { flex: 1, minHeight: sizing.touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radii.md },
-  switchActive: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  switchLabel: { color: colors.textSecondary, ...typography.label },
-  switchLabelActive: { color: colors.primary },
-  count: { color: colors.textSecondary, ...typography.caption },
+  count: { color: colors.textSecondary, ...typography.caption, paddingHorizontal: spacing.xs },
   loading: { minHeight: 180, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
   feedback: { gap: spacing.md },
-  empty: { minHeight: 260, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  emptyIcon: { width: 58, height: 58, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft },
-  emptyTitle: { color: colors.navy, textAlign: 'center', ...typography.title },
+  empty: { minHeight: 260, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
+  emptyIcon: { width: 56, height: 56, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.xl, backgroundColor: colors.primarySoft },
+  emptyTitle: { color: colors.navy, textAlign: 'center', ...typography.title, letterSpacing: -0.4 },
   muted: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
   list: { gap: spacing.md },
-  card: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  pressed: { opacity: 0.76 },
+  card: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xxl, backgroundColor: colors.surface },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   cardCopy: { flex: 1, gap: spacing.xs },
-  service: { color: colors.navy, ...typography.section },
-  counterpart: { color: colors.primary, ...typography.caption, fontWeight: '700' },
+  service: { color: colors.navy, fontSize: 17, lineHeight: 22, fontWeight: '800', letterSpacing: -0.3 },
+  counterpart: { color: colors.textSecondary, ...typography.caption, fontWeight: '600' },
   description: { color: colors.text, ...typography.body },
+  metaBox: { gap: spacing.sm, padding: spacing.md, borderRadius: radii.lg, backgroundColor: colors.surfaceMuted },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   meta: { flex: 1, color: colors.textSecondary, ...typography.caption },
-  openRow: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: spacing.xs, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm },
-  openLabel: { color: colors.primary, ...typography.label },
 });
