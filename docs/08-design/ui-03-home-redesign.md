@@ -21,7 +21,8 @@
 - **Estado profesional en un solo panel** con una acción: `Reintentar` vuelve a consultar; las demás acciones mantienen `startOrResumeWorkerOnboarding`.
 - **Pasos documentados** (perfil gratis → revisión administrativa gratuita → visible) cuando el profesional aún no está aprobado; accesos a Solicitudes y Certificación cuando está aprobado.
 - **Interacción:** `PressableScale` aplica un resorte de escala con el driver nativo (sin re-render). El selector de modo desliza su indicador con resorte.
-- **Restricciones de AGENTS.md respetadas:** sin degradados, sin sombras, sin mascota en Inicio, paleta azul/verde contenida, objetivos táctiles ≥ 44–48 px, espaciado en la escala 4/8 de `theme.ts`.
+- **Identidad de marca contenida:** la mascota oficial aparece una sola vez en la cabecera, dentro del acceso al perfil y junto al saludo. No se repite en el contenido ni compite con la búsqueda.
+- **Restricciones de AGENTS.md respetadas:** sin degradados, sin sombras, paleta azul/verde contenida, objetivos táctiles ≥ 44–48 px, espaciado en la escala 4/8 de `theme.ts`.
 
 ## Tokens añadidos en `theme.ts`
 

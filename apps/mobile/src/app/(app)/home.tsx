@@ -18,7 +18,6 @@ import {
   HOME_FEATURED_LIMIT,
   buildExploreSearchParams,
   getGreeting,
-  getInitials,
   getWorkerPanel,
   type HomeMode,
 } from '@/modules/home/home-model';
@@ -136,7 +135,6 @@ export default function HomeScreen() {
   const hero = (
     <HomeHero
       greeting={getGreeting(profile?.first_name)}
-      initials={getInitials(profile?.first_name, profile?.last_name)}
       mode={mode}
       onModeChange={setMode}
       onOpenNotifications={() => router.push('/(app)/notifications' as never)}

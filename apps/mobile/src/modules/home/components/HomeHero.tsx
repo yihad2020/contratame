@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
+import { MascotImage } from '@/components/ui/MascotImage';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
@@ -10,7 +11,6 @@ import type { HomeMode } from '@/modules/home/home-model';
 
 type HomeHeroProps = {
   greeting: string;
-  initials: string;
   unreadNotifications: number | null;
   mode: HomeMode;
   title: string;
@@ -23,7 +23,6 @@ type HomeHeroProps = {
 
 export function HomeHero({
   greeting,
-  initials,
   unreadNotifications,
   mode,
   title,
@@ -44,8 +43,8 @@ export function HomeHero({
           onPress={onOpenProfile}
           style={styles.identity}
         >
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
+          <View style={styles.mascotFrame}>
+            <MascotImage size={44} />
           </View>
           <View style={styles.identityCopy}>
             <Text numberOfLines={1} style={styles.greeting}>{greeting}</Text>
@@ -91,8 +90,17 @@ const styles = StyleSheet.create({
   },
   topRow: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   identity: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: sizing.touchTarget, paddingRight: spacing.sm },
-  avatar: { width: sizing.touchTarget, height: sizing.touchTarget, borderRadius: radii.lg, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: colors.white, fontSize: 16, lineHeight: 20, fontWeight: '800', letterSpacing: -0.3 },
+  mascotFrame: {
+    width: sizing.touchTarget,
+    height: sizing.touchTarget,
+    borderRadius: radii.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    backgroundColor: colors.onDarkSurface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.onDarkBorder,
+  },
   identityCopy: { flexShrink: 1, gap: spacing.xxs },
   greeting: { color: colors.white, ...typography.bodyStrong, letterSpacing: -0.2 },
   brandLine: { color: colors.textOnDarkMuted, ...typography.caption },

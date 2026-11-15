@@ -11,6 +11,8 @@
 
 ## Implementación
 
+- Se añadió la mascota oficial en la cabecera de Inicio como identificador compacto del acceso al perfil, sin duplicarla en otras secciones de la pantalla.
+
 - Nuevo módulo de presentación `modules/home/` con `home-model.ts` (lógica pura) y componentes `HomeHero`, `ModeSwitch`, `HomeSearchBar`, `CategoryGrid`, `FeaturedWorkerCard`, `WorkerStatusPanel` y `WorkModeContent`.
 - Nuevo componente compartido `components/ui/PressableScale.tsx`.
 - `AppIcon` incorpora iconos de categorías (`bolt`, `water`, `carpentry`, `construction`, `cleaning`, `garden`, `paint`, `mechanic`), `category` y `arrowRight`.
