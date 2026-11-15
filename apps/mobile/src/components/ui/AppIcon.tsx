@@ -16,6 +16,7 @@ export type AppIconName =
   | 'category'
   | 'back'
   | 'briefcase'
+  | 'certification'
   | 'chat'
   | 'check'
   | 'chevronRight'
@@ -25,6 +26,7 @@ export type AppIconName =
   | 'eyeOff'
   | 'filter'
   | 'heart'
+  | 'heartOutline'
   | 'home'
   | 'info'
   | 'image'
@@ -58,6 +60,7 @@ const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web:
   account: { ios: 'person.crop.circle', android: 'account_circle', web: 'account_circle' },
   back: { ios: 'chevron.left', android: 'chevron_left', web: 'chevron_left' },
   briefcase: { ios: 'briefcase', android: 'work', web: 'work' },
+  certification: { ios: 'checkmark.seal', android: 'verified', web: 'verified' },
   chat: { ios: 'message', android: 'chat', web: 'chat' },
   check: { ios: 'checkmark.circle', android: 'check_circle', web: 'check_circle' },
   chevronRight: { ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' },
@@ -66,7 +69,8 @@ const symbols: Record<AppIconName, { ios: SFSymbol; android: AndroidSymbol; web:
   eye: { ios: 'eye', android: 'visibility', web: 'visibility' },
   eyeOff: { ios: 'eye.slash', android: 'visibility_off', web: 'visibility_off' },
   filter: { ios: 'line.3.horizontal.decrease', android: 'filter_list', web: 'filter_list' },
-  heart: { ios: 'heart', android: 'favorite', web: 'favorite' },
+  heart: { ios: 'heart.fill', android: 'favorite', web: 'favorite' },
+  heartOutline: { ios: 'heart', android: 'favorite_border', web: 'favorite_border' },
   home: { ios: 'house', android: 'home', web: 'home' },
   info: { ios: 'info.circle', android: 'info', web: 'info' },
   image: { ios: 'photo', android: 'image', web: 'image' },

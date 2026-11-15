@@ -1,7 +1,7 @@
 # IMP-016 — UI-03 rediseño de Inicio
 
 **Fecha:** 2026-11-14
-**Rama:** `feature/UI-03-home-redesign`
+**Rama:** `codex/ui-03-ui-04-redesign`
 **Identificador:** `UI-03`
 **Módulos preservados:** `MOD-02`, `MOD-04`, `MOD-11`, `MOD-13`
 
@@ -25,12 +25,12 @@ No se modificaron backend, migraciones, RLS, RPC, Storage ni reglas de negocio. 
 
 | Comando | Resultado |
 |---|---|
-| `npx tsc --noEmit` | Aprobado. |
-| `npx expo lint` | Aprobado, 0 errores y 0 advertencias. |
-| `npx jest --runInBand` | Aprobado: 18 suites, 187 pruebas (incluye `home-model.test.ts`). |
-| `npx expo export --platform web` | Aprobado; bundle web generado. |
+| `npx tsc --noEmit` | Aprobado, sin errores. |
+| `npm run lint` | Aprobado, 0 errores y 0 advertencias. |
+| `npm test -- --runInBand` | Aprobado: 18 suites y 187 pruebas (incluye `home-model.test.ts`). |
+| `npx expo export --platform web` | Aprobado; bundle web generado correctamente. |
 | `git diff --check` | Aprobado. |
 
-`npm ci` falló porque `package-lock.json` ya estaba desincronizado antes de UI-03 (faltan `@emnapi/core`, `@emnapi/runtime`, `react-native-worklets`); se validó con `npm install` local sin incluir cambios de dependencias en esta rama.
+No se ejecutó `npm ci` porque `package-lock.json` ya estaba desincronizado antes de UI-03 (faltan `@emnapi/core`, `@emnapi/runtime`, `react-native-worklets`). La validación utilizó las dependencias locales existentes y no incluyó cambios de dependencias ni del lockfile.
 
 La revisión visual en Android real (360 × 800, 390 × 844, 412 × 915) y la integración contra Supabase vinculado quedan pendientes y no se marcan como aprobadas.

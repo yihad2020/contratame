@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -25,6 +25,7 @@ export default function ProfileScreen() {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [message, setMessage] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   function clearError(field: 'firstName' | 'lastName' | 'phone') {
     setErrors((current) => ({ ...current, [field]: undefined }));
@@ -46,6 +47,7 @@ export default function ProfileScreen() {
       setLastName(checked.value.lastName);
       setPhone(checked.value.phone);
       setMessage({ tone: 'success', text: 'Tus datos se actualizaron correctamente.' });
+      setEditing(false);
     } catch (cause) {
       setMessage({
         tone: 'error',
@@ -59,7 +61,7 @@ export default function ProfileScreen() {
   const fullName = profile ? `${profile.first_name} ${profile.last_name}` : 'Cuenta Contrátame!';
 
   return (
-    <Screen contentStyle={styles.screen} footer={<MarketplaceNav active="profile" />} header={<MarketplaceHeader brand title="Mi perfil" subtitle="Tu cuenta y datos personales." />}>
+    <Screen contentStyle={styles.screen} footer={<MarketplaceNav active="profile" />} header={<MarketplaceHeader brand title="Mi perfil" subtitle="Cuenta, actividad y trabajo profesional." />}>
       <View style={styles.identity}>
         <View style={styles.avatar}><Text style={styles.avatarText}>{getInitials(profile?.first_name, profile?.last_name)}</Text></View>
         <View style={styles.identityCopy}>
@@ -74,18 +76,19 @@ export default function ProfileScreen() {
       <MenuList
         label="Profesional"
         items={[
-          { key: 'certification', title: 'Certificación', description: 'Consulta o solicita tu verificación profesional', icon: 'check', onPress: () => router.push('/(app)/certification' as never) },
+          { key: 'worker-profile', title: 'Perfil profesional', description: 'Servicios, disponibilidad, zona y portafolio', icon: 'briefcase', onPress: () => router.push('/(app)/worker-onboarding' as never) },
+          { key: 'certification', title: 'Certificación', description: 'Consulta o solicita tu verificación profesional', icon: 'certification', onPress: () => router.push('/(app)/certification' as never) },
         ]}
       />
       <MenuList
         label="Actividad"
         items={[
-          { key: 'favorites', title: 'Favoritos', description: 'Profesionales que guardaste', icon: 'heart', onPress: () => router.push('/(app)/favorites' as never) },
+          { key: 'favorites', title: 'Favoritos', description: 'Profesionales que guardaste', icon: 'heartOutline', onPress: () => router.push('/(app)/favorites' as never) },
           { key: 'reports', title: 'Mis reportes', description: 'Seguimiento privado de reportes enviados', icon: 'report', onPress: () => router.push('/(app)/reports' as never) },
         ]}
       />
 
-      <FormSection label="Información personal">
+      {editing ? <FormSection label="Información personal">
         <FormField
           autoComplete="given-name"
           error={errors.firstName}
@@ -121,11 +124,24 @@ export default function ProfileScreen() {
         {message?.tone === 'success' ? <FeedbackMessage>{message.text}</FeedbackMessage> : null}
         {message?.tone === 'error' ? <ErrorMessage>{message.text}</ErrorMessage> : null}
         <AppButton icon="check" label="Guardar cambios" loading={busy} onPress={() => void submit()} />
-      </FormSection>
+        <AppButton label="Cancelar" disabled={busy} onPress={() => setEditing(false)} variant="ghost" />
+      </FormSection> : message?.tone === 'success' ? <FeedbackMessage>{message.text}</FeedbackMessage> : null}
 
       <MenuList
         label="Cuenta"
-        items={[{ key: 'signout', title: 'Cerrar sesión', icon: 'logout', tone: 'danger', onPress: () => void signOut() }]}
+        items={[
+          { key: 'personal-data', title: 'Datos personales', description: 'Nombre, apellido y teléfono', icon: 'edit', onPress: () => setEditing(true) },
+          {
+            key: 'signout',
+            title: 'Cerrar sesión',
+            icon: 'logout',
+            tone: 'danger',
+            onPress: () => Alert.alert('Cerrar sesión', '¿Quieres salir de Contrátame?', [
+              { text: 'Cancelar', style: 'cancel' },
+              { text: 'Cerrar sesión', style: 'destructive', onPress: () => void signOut() },
+            ]),
+          },
+        ]}
       />
     </Screen>
   );
