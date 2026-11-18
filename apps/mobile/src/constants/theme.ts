@@ -72,3 +72,73 @@ export const sizing = {
   screenMaxWidth: 560,
   screenPadding: 20,
 } as const;
+
+/**
+ * UI-03 redesign tokens. Layout follows the `screen_ideas/` mockups; colours come from the
+ * official brand palette (navy #0B3C7B, green #12B834, light blue #0A71C8, white, black).
+ * The mockups' dark header maps to navy and their orange accent maps to light blue.
+ * Auth screens keep using the UI-01 `colors` tokens above and are intentionally untouched.
+ */
+export const palette = {
+  navy: '#0B3C7B',
+  green: '#12B834',
+  lightBlue: '#0A71C8',
+  white: '#FFFFFF',
+  black: '#000000',
+} as const;
+
+export const ui = {
+  header: palette.navy,
+  headerDecor: 'rgba(255, 255, 255, 0.06)',
+  headerButton: 'rgba(255, 255, 255, 0.14)',
+  headerText: palette.white,
+  headerMuted: 'rgba(255, 255, 255, 0.80)',
+  accent: palette.lightBlue,
+  accentPressed: '#085EA8',
+  accentSoft: '#E6F1FB',
+  accentTint: '#F2F8FD',
+  green: palette.green,
+  greenSoft: '#E5F7E9',
+  greenText: '#0C8F27',
+  navy: palette.navy,
+  navySoft: '#E8EEF7',
+  page: '#F5F6F8',
+  card: palette.white,
+  ink: '#111214',
+  inkSoft: '#2F3338',
+  muted: '#6B7078',
+  subtle: '#9BA0A7',
+  tag: '#F1F2F4',
+  divider: '#ECEEF1',
+  field: '#F4F5F7',
+  danger: '#D92D20',
+  dangerSoft: '#FDECEA',
+  black: palette.black,
+  white: palette.white,
+} as const;
+
+export const shadows = {
+  card: {
+    shadowColor: '#0B1B33',
+    shadowOpacity: 0.07,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  raised: {
+    shadowColor: '#0B1B33',
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  nav: {
+    shadowColor: '#0B1B33',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 12,
+  },
+} as const;
+
+export const uiRadii = { sm: 10, md: 14, lg: 18, xl: 22, xxl: 28, pill: 999 } as const;

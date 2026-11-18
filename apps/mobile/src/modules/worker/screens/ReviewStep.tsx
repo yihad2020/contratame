@@ -2,9 +2,10 @@ import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AppIcon } from '@/components/ui/AppIcon';
+import { Icon } from '@/components/ui/Icon';
+import { IconBubble, StatusPill } from '@/components/ui/Kit';
 import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { shadows, ui, uiRadii } from '@/constants/theme';
 import { OnboardingScaffold } from '@/modules/worker/components/OnboardingScaffold';
 import { useWorkerOnboarding } from '@/modules/worker/onboarding-context';
 import { workerFailureMessage } from '@/modules/worker/worker-errors';
@@ -61,17 +62,17 @@ export function ReviewStep() {
             onPress={() => router.push(`/(app)/worker-onboarding/step/${section.step}` as never)}
             style={({ pressed }) => [styles.section, pressed && styles.pressed]}
           >
-            <View style={[styles.icon, section.complete ? styles.completeIcon : styles.incompleteIcon]}>
-              <AppIcon name={section.complete ? 'check' : 'error'} size={sizing.iconSm} color={section.complete ? colors.success : colors.warning} />
-            </View>
+            {section.complete
+              ? <View style={styles.completeIcon}><Icon name="check-circle" color={ui.greenText} size={24} /></View>
+              : <IconBubble name="alert-circle" variant="soft" size={44} iconSize={24} />}
             <View style={styles.copy}>
               <View style={styles.titleRow}>
                 <Text style={styles.title}>{section.title}</Text>
-                {section.optional ? <Text style={styles.optional}>Opcional</Text> : null}
+                {section.optional ? <StatusPill label="Opcional" tone="neutral" /> : null}
               </View>
               <Text style={styles.detail}>{section.detail}</Text>
             </View>
-            <AppIcon name="chevronRight" size={sizing.iconSm} color={colors.textSecondary} />
+            <Icon name="chevron-right" size={24} color={ui.accent} />
           </Pressable>
         ))}
       </View>
@@ -82,15 +83,12 @@ export function ReviewStep() {
 }
 
 const styles = StyleSheet.create({
-  sections: { gap: spacing.sm },
-  section: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl },
-  pressed: { backgroundColor: colors.surfaceMuted },
-  icon: { width: 36, height: 36, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center' },
-  completeIcon: { backgroundColor: colors.successSoft },
-  incompleteIcon: { backgroundColor: colors.warningSoft },
-  copy: { flex: 1, gap: spacing.xs },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  title: { flex: 1, color: colors.text, ...typography.bodyStrong },
-  optional: { color: colors.textSecondary, ...typography.caption },
-  detail: { color: colors.textSecondary, ...typography.caption },
+  sections: { gap: 12 },
+  section: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, backgroundColor: ui.card, borderRadius: uiRadii.xl, ...shadows.card },
+  pressed: { opacity: 0.8 },
+  completeIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: ui.greenSoft },
+  copy: { flex: 1, gap: 4 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  title: { flex: 1, color: ui.ink, fontSize: 16, lineHeight: 21, fontWeight: '700' },
+  detail: { color: ui.muted, fontSize: 13, lineHeight: 18 },
 });

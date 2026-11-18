@@ -1,14 +1,17 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
+import { Avatar } from '@/components/ui/Avatar';
+import { Icon, categoryGlyph, glyphForText } from '@/components/ui/Icon';
+import { Card, IconBubble, SectionTitle, StatusPill, Tag } from '@/components/ui/Kit';
 import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
+import { PillButton } from '@/components/ui/PillButton';
 import { Screen } from '@/components/ui/Screen';
+import { StarRating } from '@/components/ui/StarRating';
 import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { shadows, ui, uiRadii } from '@/constants/theme';
 import { favoriteFailureMessage } from '@/modules/favorite/favorite-errors';
 import {
   addWorkerFavorite,
@@ -18,16 +21,22 @@ import {
 import { formatMarketplacePrice } from '@/modules/marketplace/validation';
 import { publicWorkerFailureMessage } from '@/modules/public-worker/public-worker-errors';
 import {
+  businessClock,
+  formatAvailabilityDays,
+  formatAvailabilityHours,
   formatServiceRadius,
+  groupAvailability,
+  isWithinWeeklyAvailability,
   normalizePublicWorkerId,
 } from '@/modules/public-worker/public-worker-model';
 import { loadPublicWorkerProfile } from '@/modules/public-worker/public-worker-service';
 import type {
   PublicWorkerPortfolioItem,
+  PublicWorkerProfile,
   PublicWorkerProfileLoad,
+  PublicWorkerService,
 } from '@/modules/public-worker/types';
 import { ReviewCard } from '@/modules/review/components/ReviewCard';
-import { formatAverageRating } from '@/modules/review/review-model';
 import { weekdayLabels } from '@/modules/worker/types';
 
 type LoadState =
@@ -36,19 +45,34 @@ type LoadState =
   | { kind: 'error'; message: string }
   | { kind: 'ready'; value: PublicWorkerProfileLoad };
 
+const BAR_TITLE = 'Perfil profesional';
+
+function goBack() {
+  router.back();
+}
+
+function openReport(workerId: string) {
+  router.push({ pathname: '/(app)/worker/[workerId]/report', params: { workerId } } as never);
+}
+
+function openRequest(workerId: string) {
+  router.push({ pathname: '/(app)/worker/[workerId]/request', params: { workerId } } as never);
+}
+
 export function PublicWorkerProfileScreen({ workerIdParam }: { workerIdParam: string | string[] | undefined }) {
   const workerId = normalizePublicWorkerId(workerIdParam);
-  return (
-    <Screen
-      contentStyle={styles.screen}
-      footer={<MarketplaceNav active="explore" />}
-      header={<MarketplaceHeader back={() => router.back()} eyebrow="PROFESIONAL" title="Perfil público" subtitle="Información profesional y zona de servicio." />}
-    >
-      {workerId
-        ? <ValidPublicWorkerProfile key={workerId} workerId={workerId} />
-        : <UnavailableProfile validId={false} />}
-    </Screen>
-  );
+  if (!workerId) {
+    return (
+      <Screen
+        contentStyle={styles.stateScreen}
+        footer={<MarketplaceNav active="explore" />}
+        header={<MarketplaceHeader back={goBack} barTitle={BAR_TITLE} />}
+      >
+        <UnavailableProfile validId={false} />
+      </Screen>
+    );
+  }
+  return <ValidPublicWorkerProfile key={workerId} workerId={workerId} />;
 }
 
 function ValidPublicWorkerProfile({ workerId }: { workerId: string }) {
@@ -71,124 +95,304 @@ function ValidPublicWorkerProfile({ workerId }: { workerId: string }) {
     return () => { current = false; };
   }, [attempt, workerId]);
 
-  if (state.kind === 'loading') return <LoadingProfile />;
-  if (state.kind === 'unavailable') return <UnavailableProfile validId />;
-  if (state.kind === 'error') return <ErrorProfile message={state.message} retry={retry} />;
-  return <ReadyProfile value={state.value} />;
+  if (state.kind !== 'ready') {
+    return (
+      <Screen
+        contentStyle={styles.stateScreen}
+        footer={<MarketplaceNav active="explore" />}
+        header={<MarketplaceHeader back={goBack} barTitle={BAR_TITLE} />}
+      >
+        {state.kind === 'loading' ? <LoadingProfile /> : null}
+        {state.kind === 'unavailable' ? <UnavailableProfile validId /> : null}
+        {state.kind === 'error' ? <ErrorProfile message={state.message} retry={retry} /> : null}
+      </Screen>
+    );
+  }
+
+  const { profile } = state.value;
+  return (
+    <Screen
+      contentStyle={styles.screen}
+      footer={<ProfileActions workerId={profile.worker_id} />}
+      header={(
+        <MarketplaceHeader
+          action={{ label: 'Reportar perfil', icon: 'dots-horizontal', onPress: () => openReport(profile.worker_id) }}
+          back={goBack}
+          barTitle={BAR_TITLE}
+          overlap={<IdentityCard value={state.value} />}
+          overlapInset={96}
+        />
+      )}
+    >
+      <ReadyProfile value={state.value} />
+    </Screen>
+  );
 }
 
 function LoadingProfile() {
   return (
-    <View accessibilityRole="progressbar" style={styles.stateCard}>
-      <ActivityIndicator color={colors.primary} size="large" />
-      <Text style={styles.stateTitle}>Cargando perfil profesional…</Text>
-      <Text style={styles.muted}>Estamos consultando la información pública vigente.</Text>
-    </View>
+    <Card style={styles.stateCard}>
+      <View accessibilityRole="progressbar" style={styles.stateBody}>
+        <ActivityIndicator color={ui.accent} size="large" />
+        <Text style={styles.stateTitle}>Cargando perfil profesional…</Text>
+        <Text style={styles.stateText}>Estamos consultando la información pública vigente.</Text>
+      </View>
+    </Card>
   );
 }
 
 function UnavailableProfile({ validId }: { validId: boolean }) {
   return (
-    <View style={styles.stateCard}>
-      <View style={styles.stateIcon}><AppIcon name="briefcase" color={colors.primary} size={sizing.iconLg} /></View>
-      <Text style={styles.stateTitle}>Perfil no disponible</Text>
-      <Text style={styles.muted}>{validId
-        ? 'Este profesional ya no está disponible públicamente o el perfil no existe.'
-        : 'El identificador del profesional no es válido.'}</Text>
-      <AppButton label="Volver a Explorar" variant="secondary" onPress={() => router.replace('/(app)/explore' as never)} />
-    </View>
+    <Card style={styles.stateCard}>
+      <View style={styles.stateBody}>
+        <IconBubble name="briefcase" size={64} variant="soft" />
+        <Text style={styles.stateTitle}>Perfil no disponible</Text>
+        <Text style={styles.stateText}>{validId
+          ? 'Este profesional ya no está disponible públicamente o el perfil no existe.'
+          : 'El identificador del profesional no es válido.'}</Text>
+      </View>
+      <PillButton label="Volver a Explorar" variant="outline" onPress={() => router.replace('/(app)/explore' as never)} />
+    </Card>
   );
 }
 
 function ErrorProfile({ message, retry }: { message: string; retry: () => void }) {
   return (
-    <View style={styles.stateCard}>
+    <Card style={styles.stateCard}>
       <ErrorMessage>{message}</ErrorMessage>
-      <AppButton label="Reintentar" onPress={retry} />
-      <AppButton label="Volver a Explorar" variant="secondary" onPress={() => router.replace('/(app)/explore' as never)} />
-    </View>
+      <PillButton icon="refresh" label="Reintentar" onPress={retry} />
+      <PillButton label="Volver a Explorar" variant="outline" onPress={() => router.replace('/(app)/explore' as never)} />
+    </Card>
+  );
+}
+
+function uniqueCategories(services: PublicWorkerService[]) {
+  return [...new Set(services.map((service) => service.category_name).filter(Boolean))];
+}
+
+function locationLabel(profile: PublicWorkerProfile) {
+  const place = [profile.public_area_label, profile.city].filter(Boolean).join(' · ');
+  const includesDepartment = profile.department
+    && profile.city.toLowerCase().includes(profile.department.toLowerCase());
+  return profile.department && !includesDepartment ? `${place}, ${profile.department}` : place;
+}
+
+function IdentityCard({ value }: { value: PublicWorkerProfileLoad }) {
+  const { profile, reputation } = value;
+  const categories = uniqueCategories(profile.services);
+  const experience = profile.years_experience === null
+    ? 'Experiencia no indicada'
+    : `${profile.years_experience} años de experiencia`;
+  return (
+    <Card style={styles.identity}>
+      <View style={styles.identityRow}>
+        <Avatar badge={profile.is_verified ? 'verified' : undefined} name={profile.display_name} size={92} />
+        <View style={styles.identityCopy}>
+          <View style={styles.nameRow}>
+            <Text accessibilityRole="header" style={styles.name}>{profile.display_name}</Text>
+            {profile.is_verified ? (
+              <View accessible accessibilityLabel="Verificado por Contrátame" style={styles.seal}>
+                <Icon color={ui.accent} name="check-decagram" size={22} />
+              </View>
+            ) : null}
+          </View>
+          {categories.length ? <Text numberOfLines={2} style={styles.category}>{categories.join(' · ')}</Text> : null}
+          <StarRating count={reputation.review_count} size={15} value={reputation.average_rating} />
+          <View style={styles.locationRow}>
+            <Icon color={ui.inkSoft} name="map-marker" size={18} />
+            <Text style={styles.location}>{locationLabel(profile)}</Text>
+          </View>
+        </View>
+      </View>
+      {profile.services.length ? (
+        <View style={styles.tags}>
+          {profile.services.map((service) => <Tag key={service.service_id} label={service.title} />)}
+        </View>
+      ) : null}
+      {profile.professional_bio ? <Text style={styles.bio}>{profile.professional_bio}</Text> : null}
+      <View style={styles.metaRow}>
+        <View style={styles.metaItem}>
+          <Icon color={ui.accent} name="briefcase" size={16} />
+          <Text style={styles.meta}>{experience}</Text>
+        </View>
+        <View style={styles.metaItem}>
+          <Icon color={ui.green} name="map-marker-radius" size={16} />
+          <Text style={styles.meta}>Radio de servicio: {formatServiceRadius(profile.service_radius_m)}</Text>
+        </View>
+      </View>
+    </Card>
   );
 }
 
 function ReadyProfile({ value }: { value: PublicWorkerProfileLoad }) {
   const { profile } = value;
-  const initials = profile.display_name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   return (
     <>
-      <View style={styles.hero}>
-        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.avatar}>
-          <Text style={styles.initials}>{initials}</Text>
-        </View>
-        <View style={styles.heroCopy}>
-          <Text style={styles.name}>{profile.display_name}</Text>
-          {profile.is_verified ? <View style={styles.verified}><AppIcon name="check" color={colors.success} size={sizing.iconSm} /><Text style={styles.verifiedText}>Verificado por Contrátame</Text></View> : null}
-          <View style={styles.locationRow}>
-            <AppIcon name="location" color={colors.green} size={sizing.iconSm} />
-            <Text style={styles.location}>{profile.public_area_label}, {profile.city}, {profile.department}</Text>
-          </View>
-          <Text style={styles.radius}>Radio de servicio: {formatServiceRadius(profile.service_radius_m)}</Text>
-        </View>
-        {profile.professional_bio ? <Text style={styles.bio}>{profile.professional_bio}</Text> : null}
-        <Text style={styles.experience}>{profile.years_experience === null
-          ? 'Experiencia no indicada'
-          : `${profile.years_experience} años de experiencia`}</Text>
-      </View>
-
       <Section title="Servicios">
-        {profile.services.map((service) => (
-          <View key={service.service_id} style={styles.detailRow}>
-            <View style={styles.detailIcon}><AppIcon name="tools" size={sizing.iconSm} /></View>
-            <View style={styles.detailCopy}>
-              <Text style={styles.detailTitle}>{service.title}</Text>
-              <Text style={styles.category}>{service.category_name}</Text>
-              {service.description ? <Text style={styles.muted}>{service.description}</Text> : null}
-              <Text style={styles.price}>{formatMarketplacePrice(service.pricing_type, service.price_bob)}</Text>
-            </View>
-          </View>
-        ))}
-      </Section>
-
-      <Section title="Disponibilidad semanal">
-        {profile.availability.length ? profile.availability.map((available, index) => (
-          <View key={`${available.day_of_week}-${available.start_time}-${available.end_time}-${index}`} style={styles.detailRow}>
-            <View style={[styles.detailIcon, styles.greenIcon]}><AppIcon name="time" color={colors.success} size={sizing.iconSm} /></View>
-            <Text style={styles.detailTitle}>{weekdayLabels[available.day_of_week]} · {available.start_time}–{available.end_time}</Text>
-          </View>
-        )) : <Text style={styles.muted}>El profesional no publicó horarios recurrentes.</Text>}
-      </Section>
-
-      <Section title="Portafolio">
-        {value.portfolioImageWarning ? (
-          <FeedbackMessage tone="info">Algunas imágenes no pudieron cargarse. La información del perfil sigue disponible.</FeedbackMessage>
-        ) : null}
-        {profile.portfolio.length ? (
-          <ScrollView horizontal contentContainerStyle={styles.portfolio} showsHorizontalScrollIndicator={false}>
-            {profile.portfolio.map((item) => <PortfolioCard key={`${item.portfolio_item_id}:${item.signed_url ?? 'missing'}`} item={item} />)}
+        {profile.services.length ? (
+          <ScrollView horizontal contentContainerStyle={styles.hScroll} showsHorizontalScrollIndicator={false} style={styles.hScrollOuter}>
+            {profile.services.map((service) => <ServiceCard key={service.service_id} service={service} />)}
           </ScrollView>
-        ) : <Text style={styles.muted}>Este profesional todavía no publicó trabajos en su portafolio.</Text>}
+        ) : <Text style={styles.muted}>Este profesional no tiene servicios activos publicados.</Text>}
       </Section>
-      <Section title="Reseñas">
-        <Text style={styles.reputation}>{formatAverageRating(value.reputation.average_rating, value.reputation.review_count)}</Text>
-        {value.reputation.reviews.length ? value.reputation.reviews.map((review) => (
-          <ReviewCard key={review.review_id} review={review} />
-        )) : <Text style={styles.muted}>No hay reseñas todavía.</Text>}
-        {value.reputation.review_count > value.reputation.reviews.length ? (
-          <Text style={styles.muted}>Se muestran las {value.reputation.reviews.length} reseñas más recientes.</Text>
-        ) : null}
-      </Section>
-      <FavoriteControl workerId={profile.worker_id} />
-      <AppButton
-        icon="report"
-        label="Reportar perfil"
-        variant="ghost"
-        onPress={() => router.push({ pathname: '/(app)/worker/[workerId]/report', params: { workerId: profile.worker_id } } as never)}
-      />
-      <AppButton
-        icon="send"
-        label="Solicitar servicio"
-        onPress={() => router.push({ pathname: '/(app)/worker/[workerId]/request', params: { workerId: profile.worker_id } } as never)}
-      />
+
+      {profile.services.length ? (
+        <Section title="Precios">
+          {profile.services.map((service) => (
+            <Card
+              accessibilityLabel={`${service.title}, ${formatMarketplacePrice(service.pricing_type, service.price_bob)}. Solicitar servicio`}
+              key={service.service_id}
+              onPress={() => openRequest(profile.worker_id)}
+              style={styles.priceRow}
+            >
+              <View style={styles.priceCopy}>
+                <Text numberOfLines={2} style={styles.priceTitle}>{service.title}</Text>
+                <Text numberOfLines={1} style={styles.priceSubtitle}>{service.category_name}</Text>
+              </View>
+              <Text numberOfLines={2} style={styles.priceValue}>{formatMarketplacePrice(service.pricing_type, service.price_bob)}</Text>
+              <Icon color={ui.inkSoft} name="chevron-right" size={24} />
+            </Card>
+          ))}
+        </Section>
+      ) : null}
+
+      <AvailabilitySection profile={profile} />
+      <PortfolioSection value={value} />
+      <ReviewsSection value={value} />
+
+      <View style={styles.moreActions}>
+        <FavoriteControl workerId={profile.worker_id} />
+        <Pressable
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={() => openReport(profile.worker_id)}
+          style={({ pressed }) => [styles.reportLink, pressed && styles.pressed]}
+        >
+          <Icon color={ui.muted} name="flag" size={18} />
+          <Text style={styles.reportLabel}>Reportar perfil</Text>
+        </Pressable>
+      </View>
     </>
+  );
+}
+
+function ServiceCard({ service }: { service: PublicWorkerService }) {
+  const category = categoryGlyph(service.category_icon_key, service.category_slug);
+  const glyph = category.name === 'hammer-wrench' ? glyphForText(service.title) : category.name;
+  return (
+    <Card style={styles.serviceCard}>
+      <Icon color={ui.ink} name={glyph} size={34} />
+      <View style={styles.serviceCopy}>
+        <Text numberOfLines={2} style={styles.serviceTitle}>{service.title}</Text>
+        <Text numberOfLines={3} style={styles.serviceText}>{service.description || service.category_name}</Text>
+      </View>
+    </Card>
+  );
+}
+
+function AvailabilitySection({ profile }: { profile: PublicWorkerProfile }) {
+  const groups = groupAvailability(profile.availability);
+  const availableNow = isWithinWeeklyAvailability(profile.availability, businessClock(new Date()));
+  return (
+    <Section title="Disponibilidad">
+      <Card style={styles.availabilityCard}>
+        <IconBubble name="calendar-month" shape="square" size={48} variant="solid" />
+        <View style={styles.availabilityCopy}>
+          {groups.length ? groups.map((group) => (
+            <View key={`${group.start_time}-${group.end_time}`}>
+              <Text style={styles.availabilityDays}>{formatAvailabilityDays(group.days, weekdayLabels)}</Text>
+              <Text style={styles.availabilityHours}>{formatAvailabilityHours(group.start_time, group.end_time)}</Text>
+            </View>
+          )) : <Text style={styles.availabilityHours}>El profesional no publicó horarios recurrentes.</Text>}
+        </View>
+        {availableNow ? <StatusPill dot label="Disponible ahora" tone="success" /> : null}
+      </Card>
+    </Section>
+  );
+}
+
+function PortfolioSection({ value }: { value: PublicWorkerProfileLoad }) {
+  const { portfolio } = value.profile;
+  const [expanded, setExpanded] = useState(false);
+  const hasDetails = portfolio.some((item) => item.title || item.description);
+  return (
+    <Section
+      actionLabel={hasDetails ? (expanded ? 'Ver menos' : 'Ver todos') : undefined}
+      onAction={hasDetails ? () => setExpanded((current) => !current) : undefined}
+      title="Portafolio"
+    >
+      {value.portfolioImageWarning ? (
+        <FeedbackMessage tone="info">Algunas imágenes no pudieron cargarse. La información del perfil sigue disponible.</FeedbackMessage>
+      ) : null}
+      {portfolio.length ? (
+        <ScrollView horizontal contentContainerStyle={styles.hScroll} showsHorizontalScrollIndicator={false} style={styles.hScrollOuter}>
+          {portfolio.map((item) => (
+            <PortfolioItem key={`${item.portfolio_item_id}:${item.signed_url ?? 'missing'}`} expanded={expanded} item={item} />
+          ))}
+        </ScrollView>
+      ) : <Text style={styles.muted}>Este profesional todavía no publicó trabajos en su portafolio.</Text>}
+    </Section>
+  );
+}
+
+function PortfolioItem({ item, expanded }: { item: PublicWorkerPortfolioItem; expanded: boolean }) {
+  const [failed, setFailed] = useState(!item.signed_url);
+  const title = item.title || 'Trabajo realizado';
+  const imageStyle = expanded ? styles.portfolioImageLarge : styles.portfolioThumb;
+  return (
+    <View accessible={!expanded} accessibilityLabel={title} style={expanded ? styles.portfolioCard : undefined}>
+      {!failed && item.signed_url ? (
+        <Image source={{ uri: item.signed_url }} resizeMode="cover" onError={() => setFailed(true)} style={imageStyle} />
+      ) : (
+        <View style={[imageStyle, styles.imageFallback]}><Icon color={ui.subtle} name="image" size={32} /></View>
+      )}
+      {expanded ? (
+        <>
+          <Text numberOfLines={2} style={styles.portfolioTitle}>{title}</Text>
+          {item.description ? <Text numberOfLines={3} style={styles.portfolioText}>{item.description}</Text> : null}
+        </>
+      ) : null}
+    </View>
+  );
+}
+
+function ReviewsSection({ value }: { value: PublicWorkerProfileLoad }) {
+  const { reviews, review_count: reviewCount } = value.reputation;
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? reviews : reviews.slice(0, 1);
+  return (
+    <Section
+      actionLabel={reviews.length > 1 ? (showAll ? 'Ver menos' : 'Ver todas') : undefined}
+      onAction={reviews.length > 1 ? () => setShowAll((current) => !current) : undefined}
+      title="Reseñas"
+    >
+      {visible.length ? visible.map((review) => <ReviewCard key={review.review_id} review={review} />)
+        : <Text style={styles.muted}>No hay reseñas todavía.</Text>}
+      {showAll && reviewCount > reviews.length ? (
+        <Text style={styles.muted}>Se muestran las {reviews.length} reseñas más recientes.</Text>
+      ) : null}
+    </Section>
+  );
+}
+
+function ProfileActions({ workerId }: { workerId: string }) {
+  return (
+    <View style={styles.footer}>
+      <PillButton
+        accessibilityLabel="Abrir mis mensajes"
+        icon="message-processing"
+        label="Mis mensajes"
+        style={styles.footerButton}
+        variant="outline"
+        onPress={() => router.push('/(app)/chats' as never)}
+      />
+      <PillButton
+        icon="calendar-month"
+        label="Solicitar servicio"
+        style={styles.footerButton}
+        onPress={() => openRequest(workerId)}
+      />
+    </View>
   );
 }
 
@@ -240,12 +444,12 @@ function FavoriteControl({ workerId }: { workerId: string }) {
     }
   }
 
-  if (loading) return <AppButton disabled icon="heart" label="Consultando favorito…" variant="secondary" onPress={() => {}} />;
+  if (loading) return <PillButton disabled icon="heart-outline" label="Consultando favorito…" variant="soft" onPress={() => {}} />;
   if (failure && isFavorite === null) {
     return (
       <View style={styles.favoriteFeedback}>
         <ErrorMessage>{failure}</ErrorMessage>
-        <AppButton label="Reintentar favorito" variant="secondary" onPress={() => {
+        <PillButton icon="refresh" label="Reintentar favorito" variant="outline" onPress={() => {
           setLoading(true);
           setAttempt((current) => current + 1);
         }} />
@@ -256,68 +460,83 @@ function FavoriteControl({ workerId }: { workerId: string }) {
     <View style={styles.favoriteFeedback}>
       {notice ? <FeedbackMessage>{notice}</FeedbackMessage> : null}
       {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}
-      <AppButton
-        icon="heart"
+      <PillButton
+        icon={isFavorite ? 'heart' : 'heart-outline'}
         label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
         loading={busy}
-        variant="secondary"
+        variant="soft"
         onPress={() => void toggle()}
       />
     </View>
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return <View style={styles.section}><Text style={styles.sectionTitle}>{title}</Text>{children}</View>;
-}
-
-function PortfolioCard({ item }: { item: PublicWorkerPortfolioItem }) {
-  const [failed, setFailed] = useState(!item.signed_url);
+function Section({ title, children, actionLabel, onAction }: { title: string; children: ReactNode; actionLabel?: string; onAction?: () => void }) {
   return (
-    <View style={styles.portfolioCard}>
-      {!failed && item.signed_url ? (
-        <Image source={{ uri: item.signed_url }} resizeMode="cover" onError={() => setFailed(true)} style={styles.portfolioImage} />
-      ) : (
-        <View style={[styles.portfolioImage, styles.imageFallback]}><AppIcon name="image" color={colors.textSecondary} size={sizing.iconLg} /></View>
-      )}
-      <Text numberOfLines={2} style={styles.portfolioTitle}>{item.title || 'Trabajo realizado'}</Text>
-      {item.description ? <Text numberOfLines={3} style={styles.muted}>{item.description}</Text> : null}
+    <View style={styles.section}>
+      <SectionTitle actionLabel={actionLabel} onAction={onAction} title={title} />
+      {children}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.md, paddingTop: spacing.xl },
-  stateCard: { minHeight: 260, gap: spacing.md, alignItems: 'stretch', justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  stateIcon: { width: 64, height: 64, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft },
-  stateTitle: { color: colors.navy, textAlign: 'center', ...typography.title },
-  hero: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  avatar: { width: 72, height: 72, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft, borderWidth: 2, borderColor: colors.primary },
-  initials: { color: colors.primary, ...typography.title },
-  heroCopy: { gap: spacing.xs },
-  name: { color: colors.navy, ...typography.title },
-  verified: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radii.pill, backgroundColor: colors.successSoft },
-  verifiedText: { color: colors.success, ...typography.caption, fontWeight: '700' },
-  locationRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
-  location: { flex: 1, color: colors.textSecondary, ...typography.label },
-  radius: { color: colors.success, ...typography.label },
-  bio: { color: colors.text, ...typography.body },
-  experience: { color: colors.primary, ...typography.label },
-  section: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  sectionTitle: { color: colors.navy, ...typography.section },
-  detailRow: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border },
-  detailIcon: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radii.md, backgroundColor: colors.primarySoft },
-  greenIcon: { backgroundColor: colors.greenSoft },
-  detailCopy: { flex: 1, gap: spacing.xs },
-  detailTitle: { flex: 1, color: colors.text, ...typography.bodyStrong },
-  category: { color: colors.primary, ...typography.caption, fontWeight: '700' },
-  price: { color: colors.navy, ...typography.label },
-  reputation: { color: colors.warning, ...typography.bodyStrong },
-  muted: { color: colors.textSecondary, ...typography.body },
-  portfolio: { gap: spacing.md, paddingRight: spacing.sm },
-  portfolioCard: { width: 220, gap: spacing.sm },
-  portfolioImage: { width: 220, aspectRatio: 4 / 3, borderRadius: radii.lg, backgroundColor: colors.surfaceMuted },
-  imageFallback: { alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
-  portfolioTitle: { color: colors.text, ...typography.label },
-  favoriteFeedback: { gap: spacing.sm },
+  screen: { gap: 14, paddingTop: 12 },
+  stateScreen: { gap: 14, paddingTop: 20 },
+  stateCard: { minHeight: 260, gap: 14, justifyContent: 'center', padding: 24 },
+  stateBody: { alignItems: 'center', gap: 12 },
+  stateTitle: { color: ui.ink, fontSize: 19, lineHeight: 25, fontWeight: '700', textAlign: 'center' },
+  stateText: { color: ui.muted, fontSize: 15, lineHeight: 21, textAlign: 'center' },
+  pressed: { opacity: 0.7 },
+
+  identity: { gap: 14, padding: 18 },
+  identityRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
+  identityCopy: { flex: 1, gap: 5 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
+  name: { flexShrink: 1, color: ui.ink, fontSize: 21, lineHeight: 27, fontWeight: '800' },
+  seal: { justifyContent: 'center' },
+  category: { color: ui.inkSoft, fontSize: 16, lineHeight: 21 },
+  locationRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 4 },
+  location: { flex: 1, color: ui.muted, fontSize: 14, lineHeight: 19 },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  bio: { color: ui.muted, fontSize: 15, lineHeight: 22 },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  meta: { color: ui.inkSoft, fontSize: 13, lineHeight: 18, fontWeight: '600' },
+
+  section: { gap: 8 },
+  muted: { color: ui.muted, fontSize: 15, lineHeight: 21 },
+  hScrollOuter: { flexGrow: 0, marginHorizontal: -4 },
+  hScroll: { gap: 10, paddingHorizontal: 4, paddingVertical: 6 },
+
+  serviceCard: { width: 176, flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 14, borderRadius: uiRadii.lg },
+  serviceCopy: { flex: 1, gap: 4 },
+  serviceTitle: { color: ui.ink, fontSize: 15, lineHeight: 20, fontWeight: '700' },
+  serviceText: { color: ui.muted, fontSize: 13, lineHeight: 17 },
+
+  priceRow: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, borderRadius: uiRadii.md },
+  priceCopy: { flex: 1, gap: 2 },
+  priceTitle: { color: ui.ink, fontSize: 16, lineHeight: 21, fontWeight: '600' },
+  priceSubtitle: { color: ui.muted, fontSize: 13, lineHeight: 18 },
+  priceValue: { maxWidth: 140, color: ui.ink, fontSize: 17, lineHeight: 22, fontWeight: '800', textAlign: 'right' },
+
+  availabilityCard: { flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: uiRadii.lg },
+  availabilityCopy: { flex: 1, gap: 8 },
+  availabilityDays: { color: ui.ink, fontSize: 16, lineHeight: 21, fontWeight: '600' },
+  availabilityHours: { color: ui.muted, fontSize: 14, lineHeight: 19 },
+
+  portfolioThumb: { width: 96, height: 96, borderRadius: uiRadii.md, backgroundColor: ui.tag },
+  portfolioCard: { width: 220, gap: 6 },
+  portfolioImageLarge: { width: 220, aspectRatio: 4 / 3, borderRadius: uiRadii.lg, backgroundColor: ui.tag },
+  imageFallback: { alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: ui.divider },
+  portfolioTitle: { color: ui.ink, fontSize: 15, lineHeight: 20, fontWeight: '600' },
+  portfolioText: { color: ui.muted, fontSize: 13, lineHeight: 18 },
+
+  moreActions: { gap: 12, paddingTop: 6 },
+  favoriteFeedback: { gap: 8 },
+  reportLink: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, alignSelf: 'center', paddingHorizontal: 12 },
+  reportLabel: { color: ui.muted, fontSize: 15, fontWeight: '600' },
+
+  footer: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, backgroundColor: ui.card, ...shadows.nav },
+  footerButton: { flex: 1, minHeight: 54, paddingHorizontal: 12 },
 });

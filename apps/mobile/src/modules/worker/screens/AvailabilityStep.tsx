@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
 import { FormField } from '@/components/ui/FormField';
+import { IconBubble } from '@/components/ui/Kit';
+import { PillButton } from '@/components/ui/PillButton';
 import { ErrorMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { ui, uiRadii } from '@/constants/theme';
+import { IconAction } from '@/modules/worker/components/IconAction';
 import { InlineChoice } from '@/modules/worker/components/InlineChoice';
 import { OnboardingScaffold } from '@/modules/worker/components/OnboardingScaffold';
 import { WorkerSurface } from '@/modules/worker/components/WorkerSurface';
@@ -75,9 +76,9 @@ export function AvailabilityStep() {
             <WorkerSurface key={dayKey} title={weekdayLabels[Number(dayKey)]}>
               {ranges.map((range) => (
                 <View key={range.id} style={styles.rangeRow}>
-                  <AppIcon name="time" size={sizing.iconSm} color={colors.textSecondary} />
+                  <IconBubble name="calendar-clock" variant="soft" shape="square" size={40} iconSize={22} />
                   <Text style={styles.range}>{range.start_time.slice(0, 5)}–{range.end_time.slice(0, 5)}</Text>
-                  <Pressable accessibilityLabel="Eliminar horario" disabled={saving} onPress={() => remove(range)} style={styles.iconButton}><AppIcon name="trash" size={sizing.iconSm} color={colors.danger} /></Pressable>
+                  <IconAction label="Eliminar horario" icon="delete" tone="danger" disabled={saving} onPress={() => remove(range)} />
                 </View>
               ))}
             </WorkerSurface>
@@ -93,7 +94,7 @@ export function AvailabilityStep() {
           <View style={styles.timeField}><FormField label="Hasta" value={end} onChangeText={setEnd} error={errors.end} placeholder="12:00" maxLength={5} keyboardType="numbers-and-punctuation" /></View>
         </View>
         <Text style={styles.help}>Usa HH:00 o HH:30. Puedes agregar varios rangos por día sin superponerlos.</Text>
-        <AppButton label="Agregar horario" icon="plus" loading={saving} onPress={() => void addRange()} />
+        <PillButton label="Agregar horario" icon="plus" loading={saving} onPress={() => void addRange()} />
       </WorkerSurface>
       {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}
     </OnboardingScaffold>
@@ -101,13 +102,12 @@ export function AvailabilityStep() {
 }
 
 const styles = StyleSheet.create({
-  schedule: { gap: spacing.sm },
-  rangeRow: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  range: { flex: 1, color: colors.text, ...typography.body },
-  iconButton: { width: sizing.touchTarget, height: sizing.touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill },
-  empty: { color: colors.textSecondary, ...typography.body },
-  label: { color: colors.text, ...typography.label },
-  timeRow: { flexDirection: 'row', gap: spacing.md },
+  schedule: { gap: 12 },
+  rangeRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 4, borderRadius: uiRadii.md },
+  range: { flex: 1, color: ui.ink, fontSize: 16, lineHeight: 21, fontWeight: '600' },
+  empty: { color: ui.muted, fontSize: 15, lineHeight: 21 },
+  label: { color: ui.ink, fontSize: 15, lineHeight: 20, fontWeight: '600' },
+  timeRow: { flexDirection: 'row', gap: 12 },
   timeField: { flex: 1 },
-  help: { color: colors.textSecondary, ...typography.caption },
+  help: { color: ui.muted, fontSize: 13, lineHeight: 18 },
 });

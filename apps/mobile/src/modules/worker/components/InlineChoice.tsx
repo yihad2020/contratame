@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { Icon } from '@/components/ui/Icon';
+import { ui, uiRadii } from '@/constants/theme';
 
 export function InlineChoice<T extends string | number>({
   options,
@@ -21,8 +22,9 @@ export function InlineChoice<T extends string | number>({
             accessibilityState={{ selected }}
             key={String(option.value)}
             onPress={() => onChange(option.value)}
-            style={[styles.option, selected && styles.selected]}
+            style={({ pressed }) => [styles.option, selected && styles.selected, pressed && styles.pressed]}
           >
+            {selected ? <Icon color={ui.accent} name="check-circle" size={18} /> : null}
             <Text style={[styles.label, selected && styles.selectedLabel]}>{option.label}</Text>
           </Pressable>
         );
@@ -32,17 +34,20 @@ export function InlineChoice<T extends string | number>({
 }
 
 const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   option: {
-    minHeight: sizing.touchTarget,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radii.pill,
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    backgroundColor: ui.tag,
+    borderWidth: 1.5,
+    borderColor: ui.tag,
+    borderRadius: uiRadii.pill,
   },
-  selected: { backgroundColor: colors.primarySoft, borderColor: colors.primary, borderWidth: 1.5 },
-  label: { color: colors.textSecondary, ...typography.label },
-  selectedLabel: { color: colors.primary },
+  selected: { backgroundColor: ui.accentTint, borderColor: ui.accent },
+  pressed: { opacity: 0.8 },
+  label: { color: ui.inkSoft, fontSize: 14, lineHeight: 19, fontWeight: '600' },
+  selectedLabel: { color: ui.accent, fontWeight: '700' },
 });

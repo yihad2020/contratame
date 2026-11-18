@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { FormField } from '@/components/ui/FormField';
 import { ErrorMessage } from '@/components/ui/Typography';
 import { OnboardingScaffold } from '@/modules/worker/components/OnboardingScaffold';
+import { WorkerSurface } from '@/modules/worker/components/WorkerSurface';
 import { useWorkerOnboarding } from '@/modules/worker/onboarding-context';
 import { workerFailureMessage } from '@/modules/worker/worker-errors';
 import { validateProfessionalProfile } from '@/modules/worker/validation';
@@ -40,27 +41,29 @@ export function ProfessionalStep() {
       onNext={() => void save()}
       nextLoading={saving}
     >
-      <FormField
-        label="Biografía profesional"
-        multiline
-        numberOfLines={6}
-        maxLength={600}
-        value={bio}
-        onChangeText={setBio}
-        error={errors.bio}
-        helperText={`${Array.from(bio.trim()).length}/600 · mínimo 40 caracteres`}
-        placeholder="Describe tu experiencia, la forma en que trabajas y el tipo de ayuda que ofreces."
-      />
-      <FormField
-        label="Años de experiencia"
-        keyboardType="number-pad"
-        maxLength={2}
-        value={years}
-        onChangeText={setYears}
-        error={errors.years}
-        helperText="Puedes indicar 0 si estás comenzando."
-        placeholder="0"
-      />
+      <WorkerSurface>
+        <FormField
+          label="Biografía profesional"
+          multiline
+          numberOfLines={6}
+          maxLength={600}
+          value={bio}
+          onChangeText={setBio}
+          error={errors.bio}
+          helperText={`${Array.from(bio.trim()).length}/600 · mínimo 40 caracteres`}
+          placeholder="Describe tu experiencia, la forma en que trabajas y el tipo de ayuda que ofreces."
+        />
+        <FormField
+          label="Años de experiencia"
+          keyboardType="number-pad"
+          maxLength={2}
+          value={years}
+          onChangeText={setYears}
+          error={errors.years}
+          helperText="Puedes indicar 0 si estás comenzando."
+          placeholder="0"
+        />
+      </WorkerSurface>
       {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}
     </OnboardingScaffold>
   );

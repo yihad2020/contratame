@@ -2,12 +2,13 @@ import { Redirect } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
+import { Icon } from '@/components/ui/Icon';
+import { Card, IconBubble } from '@/components/ui/Kit';
 import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
+import { PillButton } from '@/components/ui/PillButton';
 import { Screen } from '@/components/ui/Screen';
-import { Body, DisplayTitle, ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
+import { ui, uiRadii } from '@/constants/theme';
 import { shouldShowEmailVerification } from '@/modules/auth/access-state';
 import { useAuth } from '@/modules/auth/auth-context';
 
@@ -47,44 +48,52 @@ export default function VerifyEmailScreen() {
 
   return (
     <Screen contentStyle={styles.screen} header={<MarketplaceHeader brand eyebrow="SEGURIDAD DE TU CUENTA" title="Verifica tu correo" subtitle="Un paso más para comenzar." />}>
-      <View style={styles.card}>
-      <View style={styles.stateIcon}>
-        <AppIcon name="mail" size={sizing.iconLg} />
-      </View>
-      <View style={styles.heading}>
-        <DisplayTitle>Verifica tu correo</DisplayTitle>
-        <Body>Enviamos un enlace de confirmación a:</Body>
-        {pendingEmail ? <Text selectable style={styles.email}>{pendingEmail}</Text> : null}
-        <Body muted>Debes confirmarlo antes de acceder a tu cuenta.</Body>
-      </View>
-      {message ? <FeedbackMessage tone="info">{message}</FeedbackMessage> : null}
-      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
-      <View style={styles.actions}>
-        <AppButton label="Ya lo verifiqué" loading={busyAction === 'check'} onPress={() => void run('check')} />
-        <AppButton
-          disabled={!pendingEmail}
-          label="Reenviar correo"
-          loading={busyAction === 'resend'}
-          onPress={() => void run('resend')}
-          variant="secondary"
-        />
-        <AppButton
-          label="Cerrar sesión y volver"
-          loading={busyAction === 'signOut'}
-          onPress={() => void exit()}
-          variant="ghost"
-        />
-      </View>
-      </View>
+      <Card style={styles.card}>
+        <IconBubble name="email" variant="soft" size={64} />
+        <View style={styles.heading}>
+          <Text accessibilityRole="header" style={styles.title}>Verifica tu correo</Text>
+          <Text style={styles.body}>Enviamos un enlace de confirmación a:</Text>
+          {pendingEmail ? (
+            <View style={styles.emailRow}>
+              <Icon color={ui.muted} name="email-outline" size={20} />
+              <Text selectable style={styles.email}>{pendingEmail}</Text>
+            </View>
+          ) : null}
+          <Text style={styles.muted}>Debes confirmarlo antes de acceder a tu cuenta.</Text>
+        </View>
+        {message ? <FeedbackMessage tone="info">{message}</FeedbackMessage> : null}
+        {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+        <View style={styles.actions}>
+          <PillButton label="Ya lo verifiqué" icon="check-circle" loading={busyAction === 'check'} onPress={() => void run('check')} />
+          <PillButton
+            disabled={!pendingEmail}
+            icon="email-sync"
+            label="Reenviar correo"
+            loading={busyAction === 'resend'}
+            onPress={() => void run('resend')}
+            variant="outline"
+          />
+          <PillButton
+            icon="logout"
+            label="Cerrar sesión y volver"
+            loading={busyAction === 'signOut'}
+            onPress={() => void exit()}
+            variant="soft"
+          />
+        </View>
+      </Card>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.xl, paddingTop: spacing.xl },
-  card: { gap: spacing.xl, padding: spacing.xl, backgroundColor: colors.surface, borderRadius: radii.xl, borderWidth: 1, borderColor: colors.border },
-  stateIcon: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', borderRadius: radii.lg, backgroundColor: colors.primarySoft },
-  heading: { gap: spacing.sm },
-  email: { color: colors.text, ...typography.bodyStrong },
-  actions: { gap: spacing.md },
+  screen: { gap: 20, paddingTop: 20 },
+  card: { gap: 20, padding: 22 },
+  heading: { gap: 8 },
+  title: { color: ui.ink, fontSize: 24, lineHeight: 30, fontWeight: '800' },
+  body: { color: ui.inkSoft, fontSize: 16, lineHeight: 22 },
+  muted: { color: ui.muted, fontSize: 15, lineHeight: 21 },
+  emailRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10, borderRadius: uiRadii.md, backgroundColor: ui.tag },
+  email: { flex: 1, color: ui.ink, fontSize: 16, lineHeight: 21, fontWeight: '700' },
+  actions: { gap: 10 },
 });

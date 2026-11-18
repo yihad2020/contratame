@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
 import * as Location from 'expo-location';
 import { useRef, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
 import { FormField } from '@/components/ui/FormField';
+import { Icon } from '@/components/ui/Icon';
+import { PillButton } from '@/components/ui/PillButton';
 import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
-import { colors, spacing, typography } from '@/constants/theme';
+import { ui } from '@/constants/theme';
 import { LocationPicker } from '@/modules/worker/components/LocationPicker';
 import type { MapCoordinate } from '@/modules/worker/components/LocationPicker.types';
 import { OnboardingScaffold } from '@/modules/worker/components/OnboardingScaffold';
@@ -95,16 +96,21 @@ export function LocationStep() {
 
   return (
     <OnboardingScaffold step={3} title="Zona de trabajo" description="Elige una base privada y el radio en el que normalmente puedes atender. Los clientes no verán tus coordenadas exactas." onNext={() => void save()} nextLoading={saving} nextDisabled={locating}>
-      <AppButton label="Usar mi ubicación actual" icon="location" variant="secondary" loading={locating} disabled={saving} onPress={() => void selectCurrentLocation()} />
+      <PillButton label="Usar mi ubicación actual" icon="crosshairs-gps" variant="outline" loading={locating} disabled={saving} onPress={() => void selectCurrentLocation()} />
       {notice ? <FeedbackMessage tone="info">{notice}</FeedbackMessage> : null}
-      <LocationPicker coordinate={coordinate} onChange={(next: MapCoordinate) => void describe(next)} />
-      {errors.coordinate ? <Text style={styles.error}>{errors.coordinate}</Text> : null}
+      <WorkerSurface title="Base de trabajo privada">
+        <LocationPicker coordinate={coordinate} onChange={(next: MapCoordinate) => void describe(next)} />
+        {errors.coordinate ? <Text style={styles.error}>{errors.coordinate}</Text> : null}
+      </WorkerSurface>
       <WorkerSurface title="Información pública aproximada">
         <FormField label="Zona o referencia" value={areaLabel} onChangeText={setAreaLabel} error={errors.area} placeholder="Ej. Equipetrol" />
         <FormField label="Ciudad" value={city} onChangeText={setCity} error={errors.city} />
         <FormField label="Departamento" value={department} onChangeText={setDepartment} error={errors.department} />
         <FormField label="Radio de servicio (km)" keyboardType="number-pad" value={radius} onChangeText={setRadius} error={errors.radius} helperText="Entre 1 y 50 km, en kilómetros enteros." />
-        <Text style={styles.country}>País: Bolivia (BO)</Text>
+        <View style={styles.countryRow}>
+          <Icon color={ui.muted} name="flag" size={18} />
+          <Text style={styles.country}>País: Bolivia (BO)</Text>
+        </View>
       </WorkerSurface>
       {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}
     </OnboardingScaffold>
@@ -112,6 +118,7 @@ export function LocationStep() {
 }
 
 const styles = StyleSheet.create({
-  error: { color: colors.danger, ...typography.caption },
-  country: { color: colors.textSecondary, ...typography.caption, marginTop: spacing.xs },
+  error: { color: ui.danger, fontSize: 13, lineHeight: 18 },
+  countryRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+  country: { color: ui.muted, fontSize: 13, lineHeight: 18 },
 });

@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
 import { FormField } from '@/components/ui/FormField';
+import { Icon } from '@/components/ui/Icon';
+import { PillButton } from '@/components/ui/PillButton';
 import { ErrorMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { ui, uiRadii } from '@/constants/theme';
+import { IconAction } from '@/modules/worker/components/IconAction';
 import { OnboardingScaffold } from '@/modules/worker/components/OnboardingScaffold';
 import { WorkerSurface } from '@/modules/worker/components/WorkerSurface';
 import { useWorkerOnboarding } from '@/modules/worker/onboarding-context';
@@ -67,13 +68,13 @@ export function PortfolioStep() {
         <View style={styles.grid}>
           {currentDraft.portfolio.map((item) => (
             <WorkerSurface key={item.id}>
-              {item.preview_url ? <Image accessibilityLabel={`Trabajo ${item.title}`} source={{ uri: item.preview_url }} style={styles.image} /> : <View style={styles.imageFallback}><AppIcon name="image" color={colors.textSecondary} /></View>}
+              {item.preview_url ? <Image accessibilityLabel={`Trabajo ${item.title}`} source={{ uri: item.preview_url }} style={styles.image} /> : <View style={styles.imageFallback}><Icon name="image" color={ui.subtle} size={40} /></View>}
               <View style={styles.itemRow}>
                 <View style={styles.copy}>
                   <Text style={styles.itemTitle}>{item.title}</Text>
                   {item.description ? <Text style={styles.description}>{item.description}</Text> : null}
                 </View>
-                <Pressable accessibilityLabel={`Eliminar ${item.title}`} disabled={saving} onPress={() => remove(item)} style={styles.iconButton}><AppIcon name="trash" size={sizing.iconSm} color={colors.danger} /></Pressable>
+                <IconAction label={`Eliminar ${item.title}`} icon="delete" tone="danger" disabled={saving} onPress={() => remove(item)} />
               </View>
             </WorkerSurface>
           ))}
@@ -84,7 +85,7 @@ export function PortfolioStep() {
         <FormField label="Título" value={title} onChangeText={setTitle} error={errors.title} maxLength={80} placeholder="Ej. Renovación de cocina" />
         <FormField label="Descripción (opcional)" multiline value={description} onChangeText={setDescription} error={errors.description} maxLength={300} placeholder="Explica brevemente qué realizaste." />
         {errors.count ? <Text style={styles.error}>{errors.count}</Text> : null}
-        <AppButton label="Elegir imagen de la galería" icon="image" loading={saving} disabled={currentDraft.portfolio.length >= 12} onPress={() => void add()} />
+        <PillButton label="Elegir imagen de la galería" icon="image" loading={saving} disabled={currentDraft.portfolio.length >= 12} onPress={() => void add()} />
         <Text style={styles.help}>JPEG, PNG o WebP; original de hasta aproximadamente 10 MB. Las imágenes grandes se optimizan antes de subir.</Text>
       </WorkerSurface>
       {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}
@@ -93,15 +94,14 @@ export function PortfolioStep() {
 }
 
 const styles = StyleSheet.create({
-  grid: { gap: spacing.sm },
-  image: { width: '100%', aspectRatio: 16 / 10, borderRadius: radii.md, backgroundColor: colors.surfaceMuted },
-  imageFallback: { width: '100%', aspectRatio: 16 / 10, borderRadius: radii.md, backgroundColor: colors.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
-  itemRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  copy: { flex: 1, gap: spacing.xs },
-  itemTitle: { color: colors.text, ...typography.bodyStrong },
-  description: { color: colors.textSecondary, ...typography.caption },
-  iconButton: { width: sizing.touchTarget, height: sizing.touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill },
-  empty: { color: colors.textSecondary, ...typography.body },
-  error: { color: colors.danger, ...typography.caption },
-  help: { color: colors.textSecondary, ...typography.caption },
+  grid: { gap: 12 },
+  image: { width: '100%', aspectRatio: 16 / 10, borderRadius: uiRadii.lg, backgroundColor: ui.tag },
+  imageFallback: { width: '100%', aspectRatio: 16 / 10, borderRadius: uiRadii.lg, backgroundColor: ui.tag, alignItems: 'center', justifyContent: 'center' },
+  itemRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  copy: { flex: 1, gap: 2 },
+  itemTitle: { color: ui.ink, fontSize: 16, lineHeight: 21, fontWeight: '700' },
+  description: { color: ui.muted, fontSize: 13, lineHeight: 18 },
+  empty: { color: ui.muted, fontSize: 15, lineHeight: 21 },
+  error: { color: ui.danger, fontSize: 13, lineHeight: 18 },
+  help: { color: ui.muted, fontSize: 13, lineHeight: 18 },
 });

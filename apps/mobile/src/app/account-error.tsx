@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
+import { Card, IconBubble } from '@/components/ui/Kit';
 import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
+import { PillButton } from '@/components/ui/PillButton';
 import { Screen } from '@/components/ui/Screen';
-import { Body, DisplayTitle, ErrorMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing } from '@/constants/theme';
+import { ErrorMessage } from '@/components/ui/Typography';
+import { ui } from '@/constants/theme';
 import { useAuth } from '@/modules/auth/auth-context';
 
 export default function AccountErrorScreen() {
@@ -26,34 +26,35 @@ export default function AccountErrorScreen() {
 
   return (
     <Screen contentStyle={styles.screen} header={<MarketplaceHeader brand eyebrow="ESTADO DE LA CUENTA" title="Necesitamos reintentar" subtitle="Tu acceso permanece protegido." />}>
-      <View style={styles.card}>
-      <View style={styles.stateIcon}>
-        <AppIcon name="error" color={colors.danger} size={sizing.iconLg} />
-      </View>
-      <View style={styles.heading}>
-        <DisplayTitle>No pudimos cargar tu cuenta</DisplayTitle>
-        <Body>Tu acceso permanece protegido mientras intentamos resolver la información del perfil.</Body>
-        <Body muted>Puedes reintentar ahora o cerrar sesión de forma segura.</Body>
-      </View>
-      {errorMessage ? <ErrorMessage>{errorMessage}</ErrorMessage> : null}
-      <View style={styles.actions}>
-        <AppButton label="Reintentar" loading={busyAction === 'retry'} onPress={() => void retry()} />
-        <AppButton
-          label="Cerrar sesión"
-          loading={busyAction === 'signOut'}
-          onPress={() => void exit()}
-          variant="secondary"
-        />
-      </View>
-      </View>
+      <Card style={styles.card}>
+        <IconBubble name="alert-circle" variant="grey" color={ui.danger} size={64} />
+        <View style={styles.heading}>
+          <Text accessibilityRole="header" style={styles.title}>No pudimos cargar tu cuenta</Text>
+          <Text style={styles.body}>Tu acceso permanece protegido mientras intentamos resolver la información del perfil.</Text>
+          <Text style={styles.muted}>Puedes reintentar ahora o cerrar sesión de forma segura.</Text>
+        </View>
+        {errorMessage ? <ErrorMessage>{errorMessage}</ErrorMessage> : null}
+        <View style={styles.actions}>
+          <PillButton label="Reintentar" icon="refresh" loading={busyAction === 'retry'} onPress={() => void retry()} />
+          <PillButton
+            icon="logout"
+            label="Cerrar sesión"
+            loading={busyAction === 'signOut'}
+            onPress={() => void exit()}
+            variant="outline"
+          />
+        </View>
+      </Card>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.xl, paddingTop: spacing.xl },
-  card: { gap: spacing.xl, padding: spacing.xl, backgroundColor: colors.surface, borderRadius: radii.xl, borderWidth: 1, borderColor: colors.border },
-  stateIcon: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', borderRadius: radii.lg, backgroundColor: colors.dangerSoft },
-  heading: { gap: spacing.md },
-  actions: { gap: spacing.md },
+  screen: { gap: 20, paddingTop: 20 },
+  card: { gap: 20, padding: 22 },
+  heading: { gap: 10 },
+  title: { color: ui.ink, fontSize: 24, lineHeight: 30, fontWeight: '800' },
+  body: { color: ui.inkSoft, fontSize: 16, lineHeight: 22 },
+  muted: { color: ui.muted, fontSize: 15, lineHeight: 21 },
+  actions: { gap: 10 },
 });
