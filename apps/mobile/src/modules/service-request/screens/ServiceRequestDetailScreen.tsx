@@ -2,22 +2,24 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
+import { Avatar } from '@/components/ui/Avatar';
+import { Icon, glyphForText } from '@/components/ui/Icon';
+import { Card, IconBubble } from '@/components/ui/Kit';
 import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
+import { PillButton } from '@/components/ui/PillButton';
 import { Screen } from '@/components/ui/Screen';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { ui, uiRadii } from '@/constants/theme';
 import { QuotePanel } from '@/modules/quote/components/QuotePanel';
+import { RequestStatusPill } from '@/modules/service-request/components/RequestKit';
 import { serviceRequestFailureMessage } from '@/modules/service-request/service-request-errors';
 import {
   formatRequestDate,
   normalizeServiceRequestId,
-  serviceRequestStatusLabels,
 } from '@/modules/service-request/service-request-model';
 import { getMyServiceRequest } from '@/modules/service-request/service-request-service';
-import type { ServiceRequestDetail, ServiceRequestStatus } from '@/modules/service-request/types';
+import type { ServiceRequestDetail } from '@/modules/service-request/types';
 
 type DetailState =
   | { kind: 'loading' }
@@ -49,9 +51,21 @@ export function ServiceRequestDetailScreen({ requestIdParam }: { requestIdParam:
       footer={<MarketplaceNav active="requests" />}
       header={<MarketplaceHeader back={() => router.back()} eyebrow="SOLICITUD" title="Detalle" subtitle="Información vigente de la solicitud directa." />}
     >
-      {state.kind === 'loading' ? <View accessibilityRole="progressbar" style={styles.state}><ActivityIndicator color={colors.primary} /><Text style={styles.muted}>Cargando solicitud…</Text></View> : null}
+      {state.kind === 'loading' ? (
+        <Card style={styles.state}>
+          <View accessibilityRole="progressbar" style={styles.stateInner}>
+            <ActivityIndicator color={ui.accent} />
+            <Text style={styles.muted}>Cargando solicitud…</Text>
+          </View>
+        </Card>
+      ) : null}
       {state.kind === 'unavailable' ? <UnavailableDetail /> : null}
-      {state.kind === 'error' ? <View style={styles.state}><ErrorMessage>{state.message}</ErrorMessage><AppButton label="Reintentar" onPress={() => { setState({ kind: 'loading' }); setAttempt((value) => value + 1); }} /></View> : null}
+      {state.kind === 'error' ? (
+        <Card style={styles.state}>
+          <ErrorMessage>{state.message}</ErrorMessage>
+          <PillButton label="Reintentar" icon="refresh" onPress={() => { setState({ kind: 'loading' }); setAttempt((value) => value + 1); }} />
+        </Card>
+      ) : null}
       {state.kind === 'ready' ? (
         <ReadyDetail detail={state.detail} onRequestChanged={() => setAttempt((value) => value + 1)} />
       ) : null}
@@ -61,11 +75,12 @@ export function ServiceRequestDetailScreen({ requestIdParam }: { requestIdParam:
 
 function UnavailableDetail() {
   return (
-    <View style={styles.state}>
-      <Text style={styles.title}>Solicitud no disponible</Text>
+    <Card style={styles.state}>
+      <IconBubble name="text-box-remove" size={64} variant="grey" />
+      <Text style={styles.stateTitle}>Solicitud no disponible</Text>
       <Text style={styles.muted}>No existe o no participas en esta solicitud.</Text>
-      <AppButton label="Volver a Solicitudes" variant="secondary" onPress={() => router.replace('/(app)/requests' as never)} />
-    </View>
+      <PillButton label="Volver a Solicitudes" variant="outline" onPress={() => router.replace('/(app)/requests' as never)} />
+    </Card>
   );
 }
 
@@ -73,16 +88,23 @@ function ReadyDetail({ detail, onRequestChanged }: { detail: ServiceRequestDetai
   const counterpart = detail.perspective === 'customer' ? detail.worker_display_name : detail.customer_display_name;
   return (
     <>
-      <View style={styles.hero}>
+      <Card style={styles.hero}>
         <View style={styles.heroTop}>
+          <View style={styles.serviceIcon}><Icon color={ui.accent} name={glyphForText(detail.service_title)} size={34} /></View>
           <View style={styles.heroCopy}>
             <Text style={styles.title}>{detail.service_title}</Text>
-            <Text style={styles.counterpart}>{detail.perspective === 'customer' ? 'Profesional' : 'Cliente'}: {counterpart}</Text>
+            <RequestStatusPill status={detail.status} />
           </View>
-          <StatusBadge label={serviceRequestStatusLabels[detail.status]} tone={statusTone(detail.status)} />
+        </View>
+        <View style={styles.counterpart}>
+          <Avatar name={counterpart} size={40} />
+          <View style={styles.heroCopy}>
+            <Text style={styles.label}>{detail.perspective === 'customer' ? 'Profesional' : 'Cliente'}</Text>
+            <Text style={styles.value}>{counterpart}</Text>
+          </View>
         </View>
         <Text style={styles.timestamp}>Creada {new Intl.DateTimeFormat('es-BO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(detail.created_at))}</Text>
-      </View>
+      </Card>
 
       <DetailSection title="Trabajo">
         <DetailRow label="Descripción" value={detail.description} />
@@ -108,7 +130,7 @@ function ReadyDetail({ detail, onRequestChanged }: { detail: ServiceRequestDetai
       {detail.booking_id ? (
         <DetailSection title="Trabajo contratado">
           <FeedbackMessage tone="success">La cotización fue aceptada y esta solicitud ya tiene un trabajo programado.</FeedbackMessage>
-          <AppButton
+          <PillButton
             label="Ver trabajo"
             icon="briefcase"
             onPress={() => router.push({ pathname: '/(app)/booking/[bookingId]', params: { bookingId: detail.booking_id } } as never)}
@@ -122,9 +144,9 @@ function ReadyDetail({ detail, onRequestChanged }: { detail: ServiceRequestDetai
 
       <DetailSection title="Conversación">
         <Text style={styles.value}>Coordina este servicio únicamente con la persona participante de la solicitud.</Text>
-        <AppButton
+        <PillButton
           label="Abrir chat"
-          icon="chat"
+          icon="message-processing"
           onPress={() => router.push({ pathname: '/(app)/chat/request/[requestId]', params: { requestId: detail.request_id } } as never)}
         />
       </DetailSection>
@@ -133,32 +155,29 @@ function ReadyDetail({ detail, onRequestChanged }: { detail: ServiceRequestDetai
 }
 
 function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return <View style={styles.section}><Text style={styles.sectionTitle}>{title}</Text>{children}</View>;
+  return <Card style={styles.section}><Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>{children}</Card>;
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return <View style={styles.row}><Text style={styles.label}>{label}</Text><Text style={styles.value}>{value}</Text></View>;
 }
 
-function statusTone(status: ServiceRequestStatus): 'success' | 'warning' | 'danger' {
-  if (status === 'pending') return 'warning';
-  if (status === 'quoted' || status === 'accepted') return 'success';
-  return 'danger';
-}
-
 const styles = StyleSheet.create({
-  screen: { gap: spacing.lg, paddingTop: spacing.xl },
-  state: { minHeight: 240, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  title: { color: colors.navy, ...typography.title },
-  muted: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
-  hero: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  heroTop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
-  heroCopy: { flex: 1, gap: spacing.xs },
-  counterpart: { color: colors.primary, ...typography.label },
-  timestamp: { color: colors.textSecondary, ...typography.caption },
-  section: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  sectionTitle: { color: colors.navy, ...typography.section },
-  row: { minHeight: sizing.touchTarget, gap: spacing.xs, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border },
-  label: { color: colors.textSecondary, ...typography.caption },
-  value: { color: colors.text, ...typography.bodyStrong },
+  screen: { gap: 16, paddingTop: 20 },
+  state: { minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24 },
+  stateInner: { alignItems: 'center', gap: 12 },
+  stateTitle: { color: ui.ink, fontSize: 21, lineHeight: 27, fontWeight: '700', textAlign: 'center' },
+  title: { color: ui.ink, fontSize: 21, lineHeight: 27, fontWeight: '700' },
+  muted: { color: ui.muted, textAlign: 'center', fontSize: 15, lineHeight: 21 },
+  hero: { gap: 14 },
+  heroTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
+  serviceIcon: { width: 64, height: 64, alignItems: 'center', justifyContent: 'center', borderRadius: uiRadii.lg, backgroundColor: ui.accentSoft },
+  heroCopy: { flex: 1, gap: 6 },
+  counterpart: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  timestamp: { color: ui.muted, fontSize: 13, lineHeight: 18 },
+  section: { gap: 12 },
+  sectionTitle: { color: ui.ink, fontSize: 19, lineHeight: 25, fontWeight: '700' },
+  row: { minHeight: 44, gap: 2, paddingTop: 12, borderTopWidth: 1, borderTopColor: ui.divider },
+  label: { color: ui.muted, fontSize: 13, lineHeight: 18 },
+  value: { color: ui.ink, fontSize: 15, lineHeight: 21, fontWeight: '600' },
 });

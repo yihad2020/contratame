@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, sizing, spacing } from '@/constants/theme';
+import { colors, sizing, spacing, ui } from '@/constants/theme';
 
 type ScreenProps = PropsWithChildren<{
   scroll?: boolean;
@@ -63,10 +63,10 @@ const styles = StyleSheet.create({
   background: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   flex: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: colors.background },
-  headerSafe: { backgroundColor: colors.navyDeep },
+  headerSafe: { backgroundColor: ui.header },
   clear: { backgroundColor: colors.transparent },
   scroll: { flexGrow: 1 },
-  scrollBackground: { backgroundColor: colors.background },
+  scrollBackground: { backgroundColor: ui.page },
   footer: { backgroundColor: colors.surface },
   frame: {
     flex: 1,

@@ -1,18 +1,19 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
+import { Icon } from '@/components/ui/Icon';
+import { Card, IconBubble, StatusPill } from '@/components/ui/Kit';
 import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
+import { PillButton } from '@/components/ui/PillButton';
 import { Screen } from '@/components/ui/Screen';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ErrorMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { ui } from '@/constants/theme';
 import { reportFailureMessage } from '@/modules/report/report-errors';
 import { mergeReportPages, oldestReportCursor, reportReasons, reportStatuses } from '@/modules/report/report-model';
 import { listMyReports, REPORT_PAGE_SIZE } from '@/modules/report/report-service';
+import { reportStatusIcon, reportStatusTone } from '@/modules/report/screens/report-status-ui';
 import type { UserReport } from '@/modules/report/types';
 
 export function ReportsScreen() {
@@ -36,20 +37,42 @@ export function ReportsScreen() {
   }
 
   return <Screen contentStyle={styles.screen} footer={<MarketplaceNav active="profile" />} header={<MarketplaceHeader back={() => router.back()} eyebrow="SEGURIDAD" title="Mis reportes" subtitle="Seguimiento privado de los reportes que enviaste." />}>
-    {loading ? <View accessibilityRole="progressbar" style={styles.state}><ActivityIndicator color={colors.primary} /></View> : null}
-    {!loading && error ? <View style={styles.state}><ErrorMessage>{error}</ErrorMessage><AppButton label="Reintentar" onPress={() => void load()} /></View> : null}
-    {!loading && !error && !items.length ? <View style={styles.state}><AppIcon name="report" size={sizing.iconLg} /><Text style={styles.title}>No enviaste reportes</Text><Text style={styles.muted}>Puedes reportar desde un perfil profesional público o desde el detalle de una contratación.</Text></View> : null}
-    {!error ? items.map((item) => <Pressable key={item.report_id} accessibilityRole="button" onPress={() => router.push({ pathname: '/(app)/report/[reportId]', params: { reportId: item.report_id } } as never)} style={styles.card}>
-      <View style={styles.row}><View style={styles.copy}><Text style={styles.title}>{reportReasons[item.reason]}</Text><Text style={styles.muted}>{item.reported_display_name ?? 'Perfil ya no disponible'} · {item.context_type === 'booking' ? 'Contratación' : 'Perfil público'}</Text></View><StatusBadge label={reportStatuses[item.status]} tone={item.status === 'resolved' ? 'success' : item.status === 'dismissed' ? 'danger' : 'warning'} /></View>
-      <Text numberOfLines={2} style={styles.description}>{item.description}</Text>
-    </Pressable>) : null}
-    {hasMore && !error ? <AppButton label="Cargar más" variant="secondary" loading={loadingMore} onPress={() => void more()} /> : null}
+    {loading ? <Card style={styles.state}><View accessibilityRole="progressbar"><ActivityIndicator color={ui.accent} /></View></Card> : null}
+    {!loading && error ? <Card style={styles.stateGap}><ErrorMessage>{error}</ErrorMessage><PillButton label="Reintentar" icon="refresh" onPress={() => void load()} /></Card> : null}
+    {!loading && !error && !items.length ? (
+      <Card style={styles.state}>
+        <IconBubble name="flag" variant="soft" size={68} />
+        <Text style={[styles.title, styles.center]}>No enviaste reportes</Text>
+        <Text style={[styles.muted, styles.center]}>Puedes reportar desde un perfil profesional público o desde el detalle de una contratación.</Text>
+      </Card>
+    ) : null}
+    {!error ? items.map((item) => (
+      <Card key={item.report_id} onPress={() => router.push({ pathname: '/(app)/report/[reportId]', params: { reportId: item.report_id } } as never)} style={styles.card}>
+        <View style={styles.row}>
+          <IconBubble name="flag" variant="soft" shape="square" size={52} iconSize={26} />
+          <View style={styles.copy}>
+            <Text style={styles.title}>{reportReasons[item.reason]}</Text>
+            <Text style={styles.muted}>{item.reported_display_name ?? 'Perfil ya no disponible'} · {item.context_type === 'booking' ? 'Contratación' : 'Perfil público'}</Text>
+          </View>
+          <Icon color={ui.accent} name="chevron-right" size={24} />
+        </View>
+        <Text numberOfLines={2} style={styles.description}>{item.description}</Text>
+        <StatusPill icon={reportStatusIcon(item.status)} label={reportStatuses[item.status]} tone={reportStatusTone(item.status)} />
+      </Card>
+    )) : null}
+    {hasMore && !error ? <PillButton label="Cargar más" variant="outline" loading={loadingMore} onPress={() => void more()} /> : null}
   </Screen>;
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.md, paddingTop: spacing.xl }, state: { minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: spacing.md, padding: spacing.xl },
-  card: { gap: spacing.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface }, row: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }, copy: { flex: 1, gap: spacing.xs },
-  title: { color: colors.navy, ...typography.bodyStrong }, muted: { color: colors.textSecondary, ...typography.body }, description: { color: colors.text, ...typography.body },
+  screen: { gap: 14, paddingTop: 20 },
+  state: { minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 },
+  stateGap: { gap: 14 },
+  center: { textAlign: 'center' },
+  card: { gap: 12 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  copy: { flex: 1, gap: 2 },
+  title: { color: ui.ink, fontSize: 17, lineHeight: 23, fontWeight: '700' },
+  muted: { color: ui.muted, fontSize: 14, lineHeight: 20 },
+  description: { color: ui.inkSoft, fontSize: 15, lineHeight: 21 },
 });
-

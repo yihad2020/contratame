@@ -1,8 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
 import { FormField } from '@/components/ui/FormField';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { Icon } from '@/components/ui/Icon';
+import { Card } from '@/components/ui/Kit';
+import { PillButton } from '@/components/ui/PillButton';
+import { sizing, ui, uiRadii } from '@/constants/theme';
 import type { MarketplaceFilterDraft, MarketplaceSort } from '@/modules/marketplace/types';
 import type { PricingType } from '@/modules/worker/types';
 import { weekdayLabels } from '@/modules/worker/types';
@@ -29,8 +31,11 @@ export function MarketplaceFilters({ draft, errors, busy, onChange, onApply, onC
     { label: 'Precio', value: 'price_asc', disabled: !['hourly', 'daily', 'fixed'].includes(draft.pricingType) },
   ];
   return (
-    <View style={styles.panel}>
-      <Text style={styles.title}>Filtros</Text>
+    <Card style={styles.panel}>
+      <View style={styles.titleRow}>
+        <View style={styles.titleIcon}><Icon color={ui.accent} name="tune-variant" size={20} /></View>
+        <Text style={styles.title}>Filtros</Text>
+      </View>
       <View style={styles.fieldsRow}>
         <View style={styles.field}><FormField label="Ciudad" value={draft.city} onChangeText={(value) => set('city', value)} error={errors.city} placeholder="Santa Cruz de la Sierra" /></View>
         <View style={styles.field}><FormField label="Departamento" value={draft.department} onChangeText={(value) => set('department', value)} error={errors.department} placeholder="Santa Cruz" /></View>
@@ -52,10 +57,10 @@ export function MarketplaceFilters({ draft, errors, busy, onChange, onApply, onC
       <FilterGroup label="Ordenar" options={sortOptions} value={draft.sort} onChange={(value) => set('sort', value)} />
       {errors.sort ? <Text style={styles.error}>{errors.sort}</Text> : null}
       <View style={styles.actions}>
-        <View style={styles.action}><AppButton label="Limpiar" variant="ghost" disabled={busy} onPress={onClear} /></View>
-        <View style={styles.action}><AppButton label="Aplicar filtros" loading={busy} onPress={onApply} /></View>
+        <View style={styles.action}><PillButton label="Limpiar" variant="soft" disabled={busy} onPress={onClear} /></View>
+        <View style={styles.action}><PillButton label="Aplicar filtros" loading={busy} onPress={onApply} /></View>
       </View>
-    </View>
+    </Card>
   );
 }
 
@@ -90,19 +95,21 @@ function FilterGroup<T extends string>({ label, options, value, onChange }: {
 }
 
 const styles = StyleSheet.create({
-  panel: { gap: spacing.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  title: { color: colors.navy, ...typography.section },
-  fieldsRow: { flexDirection: 'row', gap: spacing.md },
+  panel: { gap: 18, padding: 18 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  titleIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: ui.accentSoft },
+  title: { color: ui.ink, fontSize: 21, lineHeight: 28, fontWeight: '700' },
+  fieldsRow: { flexDirection: 'row', gap: 12 },
   field: { flex: 1 },
-  group: { gap: spacing.sm },
-  label: { color: colors.text, ...typography.label },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: { minHeight: sizing.touchTarget, justifyContent: 'center', paddingHorizontal: spacing.md, borderRadius: radii.pill, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
-  chipSelected: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  group: { gap: 8 },
+  label: { color: ui.ink, fontSize: 15, lineHeight: 20, fontWeight: '600' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { minHeight: sizing.touchTarget, justifyContent: 'center', paddingHorizontal: 16, borderRadius: uiRadii.pill, borderWidth: 1.5, borderColor: ui.tag, backgroundColor: ui.tag },
+  chipSelected: { borderColor: ui.accent, backgroundColor: ui.accent },
   chipDisabled: { opacity: 0.4 },
-  chipLabel: { color: colors.textSecondary, ...typography.label },
-  chipLabelSelected: { color: colors.primary },
-  error: { color: colors.danger, ...typography.caption },
-  actions: { flexDirection: 'row', gap: spacing.sm },
+  chipLabel: { color: ui.inkSoft, fontSize: 14, lineHeight: 18, fontWeight: '600' },
+  chipLabelSelected: { color: ui.white },
+  error: { color: ui.danger, fontSize: 13, lineHeight: 18 },
+  actions: { flexDirection: 'row', gap: 12 },
   action: { flex: 1 },
 });

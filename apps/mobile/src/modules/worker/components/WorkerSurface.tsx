@@ -1,18 +1,23 @@
 import type { PropsWithChildren } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, spacing, typography } from '@/constants/theme';
+import { Card } from '@/components/ui/Kit';
+import { ui } from '@/constants/theme';
 
+/** Onboarding section: optional section title above a white rounded card. */
 export function WorkerSurface({ title, children }: PropsWithChildren<{ title?: string }>) {
+  const card = <Card style={styles.surface}>{children}</Card>;
+  if (!title) return card;
   return (
-    <View style={styles.surface}>
-      {title ? <Text style={styles.title}>{title}</Text> : null}
-      {children}
+    <View style={styles.block}>
+      <Text accessibilityRole="header" style={styles.title}>{title}</Text>
+      {card}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  surface: { gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl },
-  title: { color: colors.navy, ...typography.section },
+  block: { gap: 10 },
+  surface: { gap: 14 },
+  title: { color: ui.ink, fontSize: 18, lineHeight: 24, fontWeight: '700' },
 });

@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import type { AppIconName } from '@/components/ui/AppIcon';
+import { Icon, appIconGlyph } from '@/components/ui/Icon';
+import { shadows, ui, uiRadii } from '@/constants/theme';
 
 export function ChoiceCard({
   title,
@@ -16,8 +17,8 @@ export function ChoiceCard({
   accent?: 'primary' | 'green';
   onPress: () => void;
 }) {
-  const iconColor = accent === 'green' ? colors.success : colors.primary;
-  const iconBackground = accent === 'green' ? colors.greenSoft : colors.primarySoft;
+  const iconColor = accent === 'green' ? ui.greenText : ui.accent;
+  const iconBackground = accent === 'green' ? ui.greenSoft : ui.accentSoft;
 
   return (
     <Pressable
@@ -27,13 +28,13 @@ export function ChoiceCard({
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={[styles.iconBox, { backgroundColor: iconBackground }]}>
-        <AppIcon name={icon} color={iconColor} size={sizing.iconLg} />
+        <Icon name={appIconGlyph[icon]} color={iconColor} size={28} />
       </View>
       <View style={styles.copy}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.description}>{description}</Text>
       </View>
-      <AppIcon name="chevronRight" color={colors.textSecondary} size={sizing.iconSm} />
+      <Icon name="chevron-right" color={ui.accent} size={26} />
     </Pressable>
   );
 }
@@ -43,17 +44,15 @@ const styles = StyleSheet.create({
     minHeight: 84,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
+    gap: 14,
+    padding: 16,
+    backgroundColor: ui.card,
+    borderRadius: uiRadii.xl,
+    ...shadows.card,
   },
-  pressed: { backgroundColor: colors.surfaceMuted, borderColor: colors.borderStrong },
-  iconBox: { width: 44, height: 44, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center' },
-  copy: { flex: 1, gap: spacing.xs },
-  title: { color: colors.text, ...typography.bodyStrong },
-  description: { color: colors.textSecondary, ...typography.caption },
+  pressed: { opacity: 0.85 },
+  iconBox: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  copy: { flex: 1, gap: 3 },
+  title: { color: ui.ink, fontSize: 17, lineHeight: 22, fontWeight: '700' },
+  description: { color: ui.muted, fontSize: 14, lineHeight: 19 },
 });

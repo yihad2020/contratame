@@ -1,7 +1,7 @@
 import MapView, { Marker, type MapPressEvent } from 'react-native-maps';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, spacing, typography } from '@/constants/theme';
+import { ui, uiRadii } from '@/constants/theme';
 import type { LocationPickerProps } from '@/modules/worker/components/LocationPicker.types';
 
 export function LocationPicker({ coordinate, onChange }: LocationPickerProps) {
@@ -23,8 +23,8 @@ export function LocationPicker({ coordinate, onChange }: LocationPickerProps) {
 }
 
 const styles = StyleSheet.create({
-  group: { gap: spacing.sm },
-  label: { color: colors.text, ...typography.label },
-  help: { color: colors.textSecondary, ...typography.caption },
-  map: { height: 280, borderRadius: radii.lg, overflow: 'hidden' },
+  group: { gap: 8 },
+  label: { color: ui.ink, fontSize: 15, lineHeight: 20, fontWeight: '600' },
+  help: { color: ui.muted, fontSize: 13, lineHeight: 18 },
+  map: { height: 280, borderRadius: uiRadii.lg, overflow: 'hidden' },
 });

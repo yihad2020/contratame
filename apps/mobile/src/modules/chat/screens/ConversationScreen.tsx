@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -9,18 +10,22 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
-import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
+import { Avatar } from '@/components/ui/Avatar';
+import { Icon, glyphForText } from '@/components/ui/Icon';
+import { Card, IconBubble, StatusPill, type StatusTone } from '@/components/ui/Kit';
+import { PillButton } from '@/components/ui/PillButton';
 import { Screen } from '@/components/ui/Screen';
-import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { ErrorMessage } from '@/components/ui/Typography';
+import { colors, shadows, sizing, ui, uiRadii } from '@/constants/theme';
 import { useAuth } from '@/modules/auth/auth-context';
+import { chatDayKey, formatChatDayLabel } from '@/modules/chat/chat-dates';
 import { chatFailureMessage } from '@/modules/chat/chat-errors';
 import {
   CHAT_MESSAGE_COUNTER_THRESHOLD,
   CHAT_MESSAGE_MAX_CHARACTERS,
+  formatChatActivity,
   formatChatTime,
   mergeMessages,
   newestMessageCursor,
@@ -47,6 +52,7 @@ import type {
   ChatMessage,
   ChatMessageView,
 } from '@/modules/chat/types';
+import { serviceRequestStatusLabels } from '@/modules/service-request/service-request-model';
 
 type ContextState =
   | { kind: 'loading' }
@@ -230,7 +236,8 @@ export function ConversationScreen({
     <Screen
       scroll={false}
       contentStyle={styles.screen}
-      header={<MarketplaceHeader back={() => router.back()} eyebrow="CHAT" title={counterpart} subtitle={ready?.service_title ?? 'Solicitud de servicio'} />}
+      background={<ChatBackdrop />}
+      header={<ChatTopBar name={counterpart} context={ready?.service_title ?? 'Solicitud de servicio'} showAvatar={Boolean(ready)} />}
       footer={ready ? (
         <Composer
           closed={ready.conversation_status === 'closed'}
@@ -252,7 +259,7 @@ export function ConversationScreen({
       {context.kind === 'error' ? (
         <View style={styles.state}>
           <ErrorMessage>{context.message}</ErrorMessage>
-          <AppButton label="Reintentar" onPress={() => {
+          <PillButton label="Reintentar" icon="refresh" onPress={() => {
             messagesRef.current = [];
             setMessages([]);
             setContext({ kind: 'loading' });
@@ -275,30 +282,126 @@ export function ConversationScreen({
               keyboardDismissMode="interactive"
               keyboardShouldPersistTaps="handled"
               ListEmptyComponent={<Text style={styles.emptyText}>No hay mensajes todavía. Inicia la conversación sobre este servicio.</Text>}
-              ListHeaderComponent={hasOlder ? <AppButton label="Cargar mensajes anteriores" variant="ghost" loading={loadingOlder} onPress={() => void loadOlder()} /> : null}
+              ListHeaderComponent={(
+                <View style={styles.listHeader}>
+                  {hasOlder ? <PillButton label="Cargar mensajes anteriores" variant="soft" size="sm" loading={loadingOlder} onPress={() => void loadOlder()} style={styles.olderButton} /> : null}
+                  <RequestCard conversation={ready} counterpart={counterpart} />
+                </View>
+              )}
               onContentSizeChange={() => {
                 if (scrollAfterChangeRef.current) {
                   listRef.current?.scrollToEnd({ animated: messages.length > 0 });
                   scrollAfterChangeRef.current = false;
                 }
               }}
-              renderItem={({ item }) => <MessageBubble message={item} />}
+              renderItem={({ item, index }) => (
+                <View style={styles.cell}>
+                  {index === 0 || chatDayKey(messages[index - 1].created_at) !== chatDayKey(item.created_at)
+                    ? <DaySeparator value={item.created_at} />
+                    : null}
+                  <MessageBubble message={item} counterpart={counterpart} />
+                </View>
+              )}
               showsVerticalScrollIndicator={false}
             />
           )}
-          {historyFailure ? <View style={styles.historyError}><ErrorMessage>{historyFailure}</ErrorMessage><AppButton label="Sincronizar" variant="secondary" onPress={() => void reconcile(ready.conversation_id)} /></View> : null}
+          {historyFailure ? <View style={styles.historyError}><ErrorMessage>{historyFailure}</ErrorMessage><PillButton label="Sincronizar" variant="outline" icon="sync" onPress={() => void reconcile(ready.conversation_id)} /></View> : null}
         </>
       ) : null}
     </Screen>
   );
 }
 
+/** Light grey page with a white strip under the status bar so the white top bar reaches the top edge. */
+function ChatBackdrop() {
+  const insets = useSafeAreaInsets();
+  return <View style={styles.backdrop}><View style={[styles.backdropTop, { height: insets.top }]} /></View>;
+}
+
+/** White conversation bar from the chat mockup: back arrow · ring avatar · name + service context. */
+function ChatTopBar({ name, context, showAvatar }: { name: string; context: string; showAvatar: boolean }) {
+  return (
+    <View style={styles.topBar}>
+      <StatusBar style="dark" />
+      <View style={styles.topBarRow}>
+        <Pressable accessibilityLabel="Volver" accessibilityRole="button" hitSlop={8} onPress={() => router.back()} style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
+          <Icon color={ui.ink} name="arrow-left" size={28} />
+        </Pressable>
+        {showAvatar ? <Avatar name={name} size={52} /> : null}
+        <View style={styles.topBarCopy}>
+          <Text accessibilityRole="header" numberOfLines={1} style={styles.topBarName}>{name}</Text>
+          <Text numberOfLines={1} style={styles.topBarContext}>{context}</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function requestStatusTone(status: string): StatusTone {
+  if (status === 'pending' || status === 'accepted') return 'success';
+  if (status === 'quoted') return 'accent';
+  if (status === 'rejected' || status === 'cancelled') return 'danger';
+  return 'neutral';
+}
+
+/** Inline "Solicitud de servicio" card: the request this conversation belongs to. */
+function RequestCard({ conversation, counterpart }: { conversation: ChatConversation; counterpart: string }) {
+  const statusLabel = (serviceRequestStatusLabels as Record<string, string>)[conversation.request_status] ?? conversation.request_status;
+  return (
+    <Card style={styles.requestCard}>
+      <View style={styles.requestTop}>
+        <IconBubble name="calendar-month" variant="soft" size={60} iconSize={30} />
+        <View style={styles.requestCopy}>
+          <View style={styles.requestTitleRow}>
+            <Text numberOfLines={1} style={styles.requestTitle}>Solicitud de servicio</Text>
+            <StatusPill label={statusLabel} tone={requestStatusTone(conversation.request_status)} />
+          </View>
+          <View style={styles.requestRow}>
+            <Icon color={ui.inkSoft} name={glyphForText(conversation.service_title)} size={18} />
+            <Text style={styles.requestRowText}>{conversation.service_title}</Text>
+          </View>
+          <View style={styles.requestRow}>
+            <Icon color={ui.inkSoft} name="account" size={18} />
+            <Text style={styles.requestRowText}>{conversation.perspective === 'customer' ? 'Profesional' : 'Cliente'}: {counterpart}</Text>
+          </View>
+          <View style={styles.requestRow}>
+            <Icon color={ui.inkSoft} name="message-text-clock" size={18} />
+            <Text style={styles.requestRowText}>Chat iniciado: {formatChatActivity(conversation.created_at)}</Text>
+          </View>
+        </View>
+      </View>
+      <View style={styles.requestDivider} />
+      <Pressable
+        accessibilityLabel="Ver detalles de la solicitud"
+        accessibilityRole="button"
+        hitSlop={6}
+        onPress={() => router.push({ pathname: '/(app)/request/[requestId]', params: { requestId: conversation.service_request_id } } as never)}
+        style={({ pressed }) => [styles.requestLink, pressed && styles.pressed]}
+      >
+        <Text style={styles.requestLinkLabel}>Ver detalles</Text>
+        <Icon color={ui.accent} name="chevron-right" size={22} />
+      </Pressable>
+    </Card>
+  );
+}
+
+function DaySeparator({ value }: { value: string }) {
+  return <View style={styles.dayPill}><Text style={styles.dayLabel}>{formatChatDayLabel(value)}</Text></View>;
+}
+
 function StateLoading({ label = 'Abriendo conversación…' }: { label?: string }) {
-  return <View accessibilityRole="progressbar" style={styles.state}><ActivityIndicator color={colors.primary} /><Text style={styles.muted}>{label}</Text></View>;
+  return <View accessibilityRole="progressbar" style={styles.state}><ActivityIndicator color={ui.accent} /><Text style={styles.muted}>{label}</Text></View>;
 }
 
 function StateUnavailable() {
-  return <View style={styles.state}><Text style={styles.stateTitle}>Conversación no disponible</Text><Text style={styles.muted}>No existe o no participas en la solicitud asociada.</Text><AppButton label="Volver al chat" variant="secondary" onPress={() => router.replace('/(app)/chats' as never)} /></View>;
+  return (
+    <View style={styles.state}>
+      <IconBubble name="message-alert" variant="soft" size={64} />
+      <Text style={styles.stateTitle}>Conversación no disponible</Text>
+      <Text style={styles.muted}>No existe o no participas en la solicitud asociada.</Text>
+      <PillButton label="Volver al chat" variant="outline" onPress={() => router.replace('/(app)/chats' as never)} />
+    </View>
+  );
 }
 
 function ConnectionNotice({ state, onRetry }: { state: ChatConnectionState; onRetry: () => void }) {
@@ -306,18 +409,20 @@ function ConnectionNotice({ state, onRetry }: { state: ChatConnectionState; onRe
   const text = state === 'error' ? 'La actualización en tiempo real se interrumpió.' : 'Reconectando el chat…';
   return (
     <View style={styles.connection}>
+      <Icon color={colors.warning} name="cloud-sync" size={18} />
       <Text style={styles.connectionText}>{text}</Text>
-      {state === 'error' ? <Pressable accessibilityRole="button" onPress={onRetry}><Text style={styles.retryText}>Sincronizar</Text></Pressable> : null}
+      {state === 'error' ? <Pressable accessibilityRole="button" hitSlop={8} onPress={onRetry}><Text style={styles.retryText}>Sincronizar</Text></Pressable> : null}
     </View>
   );
 }
 
-function MessageBubble({ message }: { message: ChatMessageView }) {
+function MessageBubble({ message, counterpart }: { message: ChatMessageView; counterpart: string }) {
   if (message.message_type === 'system') {
     return <View style={styles.systemBubble}><Text style={styles.systemText}>{message.content}</Text><Text style={styles.systemTime}>{formatChatTime(message.created_at)}</Text></View>;
   }
   return (
     <View style={[styles.messageRow, message.is_mine ? styles.mineRow : styles.theirRow]}>
+      {message.is_mine ? null : <Avatar name={counterpart} size={36} ring={false} />}
       <View style={[styles.bubble, message.is_mine ? styles.mineBubble : styles.theirBubble]}>
         <Text style={[styles.messageText, message.is_mine && styles.mineText]}>{message.content}</Text>
         <Text style={[styles.messageTime, message.is_mine && styles.mineTime]}>{formatChatTime(message.created_at)}</Text>
@@ -344,7 +449,14 @@ function Composer({
   onSend: () => void;
 }) {
   if (closed) {
-    return <View style={styles.closedComposer}><FeedbackMessage tone="info">Esta conversación está cerrada. Puedes consultar sus mensajes, pero no enviar nuevos.</FeedbackMessage></View>;
+    return (
+      <View style={styles.composerWrap}>
+        <View accessibilityRole="text" style={styles.closedNotice}>
+          <Icon color={ui.muted} name="lock" size={20} />
+          <Text style={styles.closedText}>Esta conversación está cerrada. Puedes consultar sus mensajes, pero no enviar nuevos.</Text>
+        </View>
+      </View>
+    );
   }
   const showCounter = validation.characterCount >= CHAT_MESSAGE_COUNTER_THRESHOLD;
   return (
@@ -357,7 +469,7 @@ function Composer({
           multiline
           onChangeText={onChange}
           placeholder="Escribe un mensaje"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={ui.subtle}
           style={styles.input}
           value={draft}
         />
@@ -369,7 +481,7 @@ function Composer({
           onPress={onSend}
           style={({ pressed }) => [styles.sendButton, (!validation.ok || sending) && styles.sendDisabled, pressed && validation.ok && styles.sendPressed]}
         >
-          {sending ? <ActivityIndicator color={colors.white} /> : <AppIcon name="send" color={colors.white} />}
+          {sending ? <ActivityIndicator color={ui.white} /> : <Icon color={ui.white} name="send" size={24} />}
         </Pressable>
       </View>
       {showCounter ? (
@@ -382,38 +494,62 @@ function Composer({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, paddingTop: spacing.sm },
-  state: { flex: 1, minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: spacing.md, padding: spacing.xl },
-  stateTitle: { color: colors.navy, textAlign: 'center', ...typography.title },
-  muted: { color: colors.textSecondary, textAlign: 'center', ...typography.body },
-  connection: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radii.md, backgroundColor: colors.warningSoft },
-  connectionText: { flex: 1, color: colors.warning, ...typography.caption },
-  retryText: { color: colors.primary, ...typography.label },
-  messageList: { flexGrow: 1, gap: spacing.sm, paddingVertical: spacing.md },
+  screen: { flex: 1, paddingTop: 0, paddingBottom: 0 },
+  pressed: { opacity: 0.7 },
+  backdrop: { flex: 1, backgroundColor: ui.page },
+  backdropTop: { backgroundColor: ui.card },
+  topBar: { backgroundColor: ui.card, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: ui.divider, ...shadows.card },
+  topBarRow: { width: '100%', maxWidth: sizing.screenMaxWidth, alignSelf: 'center', minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 8, paddingRight: sizing.screenPadding, paddingVertical: 10 },
+  backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  topBarCopy: { flex: 1, gap: 2 },
+  topBarName: { color: ui.ink, fontSize: 19, lineHeight: 25, fontWeight: '800' },
+  topBarContext: { color: ui.muted, fontSize: 14, lineHeight: 19 },
+  state: { flex: 1, minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24 },
+  stateTitle: { color: ui.ink, textAlign: 'center', fontSize: 19, lineHeight: 25, fontWeight: '700' },
+  muted: { color: ui.muted, textAlign: 'center', fontSize: 15, lineHeight: 21 },
+  connection: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingHorizontal: 14, paddingVertical: 10, borderRadius: uiRadii.md, backgroundColor: colors.warningSoft },
+  connectionText: { flex: 1, color: colors.warning, fontSize: 13, lineHeight: 18 },
+  retryText: { color: ui.accent, fontSize: 14, fontWeight: '700' },
+  messageList: { flexGrow: 1, gap: 12, paddingTop: 14, paddingBottom: 16 },
   emptyList: { justifyContent: 'center' },
-  emptyText: { color: colors.textSecondary, textAlign: 'center', padding: spacing.xl, ...typography.body },
-  messageRow: { width: '100%', flexDirection: 'row' },
+  listHeader: { gap: 12 },
+  cell: { gap: 12 },
+  olderButton: { alignSelf: 'center' },
+  emptyText: { color: ui.muted, textAlign: 'center', padding: 24, fontSize: 15, lineHeight: 21 },
+  requestCard: { gap: 12, marginBottom: 4 },
+  requestTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
+  requestCopy: { flex: 1, gap: 8 },
+  requestTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
+  requestTitle: { flexShrink: 1, color: ui.ink, fontSize: 16, lineHeight: 22, fontWeight: '700' },
+  requestRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  requestRowText: { flex: 1, color: ui.inkSoft, fontSize: 14, lineHeight: 19 },
+  requestDivider: { height: 1, backgroundColor: ui.divider },
+  requestLink: { minHeight: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2 },
+  requestLinkLabel: { color: ui.accent, fontSize: 15, fontWeight: '600' },
+  dayPill: { alignSelf: 'center', marginVertical: 4, paddingHorizontal: 14, paddingVertical: 5, borderRadius: uiRadii.pill, backgroundColor: ui.divider },
+  dayLabel: { color: ui.inkSoft, fontSize: 13, lineHeight: 17, fontWeight: '500' },
+  messageRow: { width: '100%', flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   mineRow: { justifyContent: 'flex-end' },
   theirRow: { justifyContent: 'flex-start' },
-  bubble: { maxWidth: '84%', gap: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderRadius: radii.lg },
-  mineBubble: { backgroundColor: colors.primary, borderBottomRightRadius: radii.sm },
-  theirBubble: { backgroundColor: colors.surfaceMuted, borderBottomLeftRadius: radii.sm },
-  messageText: { color: colors.text, ...typography.body },
-  mineText: { color: colors.white },
-  messageTime: { color: colors.textSecondary, textAlign: 'right', ...typography.caption },
-  mineTime: { color: colors.textOnDark },
-  systemBubble: { alignSelf: 'center', maxWidth: '90%', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radii.pill, backgroundColor: colors.greenSoft },
-  systemText: { color: colors.success, textAlign: 'center', ...typography.caption },
-  systemTime: { color: colors.textSecondary, textAlign: 'center', ...typography.caption },
-  historyError: { gap: spacing.sm, paddingVertical: spacing.sm },
-  composerWrap: { width: '100%', maxWidth: sizing.screenMaxWidth, alignSelf: 'center', gap: spacing.xs, paddingHorizontal: sizing.screenPadding, paddingTop: spacing.sm, backgroundColor: colors.surface },
-  composerRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm },
-  input: { flex: 1, minHeight: sizing.touchTarget, maxHeight: 132, color: colors.text, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radii.xl, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, backgroundColor: colors.surface, ...typography.body },
-  sendButton: { width: sizing.buttonHeight, height: sizing.buttonHeight, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primary },
-  sendPressed: { backgroundColor: colors.primaryPressed },
-  sendDisabled: { backgroundColor: colors.primaryDisabled },
-  counter: { color: colors.textSecondary, textAlign: 'right', ...typography.caption },
-  counterError: { color: colors.danger, fontWeight: '700' },
-  closedComposer: { width: '100%', maxWidth: sizing.screenMaxWidth, alignSelf: 'center', paddingHorizontal: sizing.screenPadding, paddingTop: spacing.sm },
+  bubble: { maxWidth: '78%', gap: 4, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8, borderRadius: 18 },
+  mineBubble: { backgroundColor: ui.accent, borderBottomRightRadius: 6 },
+  theirBubble: { flexShrink: 1, backgroundColor: ui.divider },
+  messageText: { color: ui.ink, fontSize: 16, lineHeight: 22 },
+  mineText: { color: ui.white },
+  messageTime: { alignSelf: 'flex-end', color: ui.muted, fontSize: 12, lineHeight: 16 },
+  mineTime: { color: ui.headerMuted },
+  systemBubble: { alignSelf: 'center', maxWidth: '90%', gap: 2, paddingHorizontal: 14, paddingVertical: 8, borderRadius: uiRadii.lg, backgroundColor: ui.greenSoft },
+  systemText: { color: ui.greenText, textAlign: 'center', fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  systemTime: { color: ui.muted, textAlign: 'center', fontSize: 12, lineHeight: 16 },
+  historyError: { gap: 8, paddingVertical: 8 },
+  composerWrap: { width: '100%', maxWidth: sizing.screenMaxWidth, alignSelf: 'center', gap: 6, paddingHorizontal: sizing.screenPadding, paddingTop: 12, paddingBottom: 10, backgroundColor: ui.card },
+  composerRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
+  input: { flex: 1, minHeight: 52, maxHeight: 132, color: ui.ink, borderWidth: 1, borderColor: ui.divider, borderRadius: 26, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, backgroundColor: ui.card, fontSize: 16, lineHeight: 22 },
+  sendButton: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 26, backgroundColor: ui.accent },
+  sendPressed: { backgroundColor: ui.accentPressed },
+  sendDisabled: { opacity: 0.45 },
+  counter: { color: ui.muted, textAlign: 'right', fontSize: 12, lineHeight: 16 },
+  counterError: { color: ui.danger, fontWeight: '700' },
+  closedNotice: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderRadius: uiRadii.lg, backgroundColor: ui.tag },
+  closedText: { flex: 1, color: ui.inkSoft, fontSize: 14, lineHeight: 19 },
 });
-

@@ -1,29 +1,35 @@
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState, type PropsWithChildren, type ReactNode } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
-import { FormField } from '@/components/ui/FormField';
-import { FormSection } from '@/components/ui/FormSection';
+import { Avatar } from '@/components/ui/Avatar';
+import { Icon, categoryGlyph, type IconName } from '@/components/ui/Icon';
+import { Card, IconBubble, StepProgress } from '@/components/ui/Kit';
 import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
+import { PillButton } from '@/components/ui/PillButton';
 import { Screen } from '@/components/ui/Screen';
 import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { shadows, sizing, ui, uiRadii } from '@/constants/theme';
 import { formatMarketplacePrice } from '@/modules/marketplace/validation';
 import { publicWorkerFailureMessage } from '@/modules/public-worker/public-worker-errors';
 import { normalizePublicWorkerId } from '@/modules/public-worker/public-worker-model';
 import { loadPublicWorkerRequestContext } from '@/modules/public-worker/public-worker-service';
-import type { PublicWorkerProfile } from '@/modules/public-worker/types';
+import type { PublicWorkerProfile, PublicWorkerService } from '@/modules/public-worker/types';
 import { RequestLocationPicker } from '@/modules/service-request/components/RequestLocationPicker';
+import { RequestField } from '@/modules/service-request/components/RequestKit';
 import { serviceRequestFailureMessage } from '@/modules/service-request/service-request-errors';
 import { validateServiceRequest } from '@/modules/service-request/service-request-model';
 import { createServiceRequest } from '@/modules/service-request/service-request-service';
 import type { RequestCoordinate, ValidatedServiceRequest } from '@/modules/service-request/types';
 
 const SANTA_CRUZ = { latitude: -17.7833, longitude: -63.1821 };
+/** Matches the validator limit in `validateServiceRequest`. */
+const DESCRIPTION_MAX = 2000;
+/** Required inputs tracked by the header progress: service, description, exact location, area label. */
+const REQUIRED_STEPS = 4;
+const TILE_GAP = 10;
 
 type ContextState =
   | { kind: 'loading' }
@@ -49,32 +55,71 @@ export function RequestServiceScreen({ workerIdParam }: { workerIdParam: string 
     return () => { current = false; };
   }, [retry, workerId]);
 
+  if (context.kind === 'ready') return <RequestForm key={context.profile.worker_id} profile={context.profile} />;
+
+  return (
+    <RequestFrame footer={<MarketplaceNav active="explore" />}>
+      {context.kind === 'loading' ? <LoadingContext /> : null}
+      {context.kind === 'unavailable' ? <UnavailableContext /> : null}
+      {context.kind === 'error' ? (
+        <Card style={styles.stateCard}>
+          <ErrorMessage>{context.message}</ErrorMessage>
+          <PillButton label="Reintentar" icon="refresh" onPress={() => { setContext({ kind: 'loading' }); setRetry((value) => value + 1); }} />
+        </Card>
+      ) : null}
+    </RequestFrame>
+  );
+}
+
+/** Screen shell shared by every state: navy header with back button, wordmark and title. */
+function RequestFrame({ children, footer, progress }: PropsWithChildren<{ footer: ReactNode; progress?: number }>) {
   return (
     <Screen
       contentStyle={styles.screen}
-      footer={<MarketplaceNav active="explore" />}
-      header={<MarketplaceHeader back={() => router.back()} eyebrow="SOLICITUD DIRECTA" title="Solicitar servicio" subtitle="Envía los detalles al profesional elegido." />}
+      footer={footer}
+      header={(
+        <MarketplaceHeader
+          back={() => router.back()}
+          brand
+          subtitle="Cuéntanos qué servicio necesitas"
+          title="Nueva solicitud"
+          trailing={progress === undefined ? undefined : <StepProgress current={progress} total={REQUIRED_STEPS} />}
+        />
+      )}
     >
-      {context.kind === 'loading' ? <LoadingContext /> : null}
-      {context.kind === 'unavailable' ? <UnavailableContext /> : null}
-      {context.kind === 'error' ? <View style={styles.stateCard}><ErrorMessage>{context.message}</ErrorMessage><AppButton label="Reintentar" onPress={() => { setContext({ kind: 'loading' }); setRetry((value) => value + 1); }} /></View> : null}
-      {context.kind === 'ready' ? <RequestForm key={context.profile.worker_id} profile={context.profile} /> : null}
+      {children}
     </Screen>
   );
 }
 
 function LoadingContext() {
-  return <View accessibilityRole="progressbar" style={styles.stateCard}><ActivityIndicator color={colors.primary} /><Text style={styles.muted}>Comprobando servicios disponibles…</Text></View>;
+  return (
+    <Card style={styles.stateCard}>
+      <View accessibilityRole="progressbar" style={styles.stateInner}>
+        <ActivityIndicator color={ui.accent} />
+        <Text style={styles.stateText}>Comprobando servicios disponibles…</Text>
+      </View>
+    </Card>
+  );
 }
 
 function UnavailableContext() {
   return (
-    <View style={styles.stateCard}>
+    <Card style={styles.stateCard}>
+      <IconBubble name="account-off" size={64} variant="grey" />
       <Text style={styles.stateTitle}>No se puede crear la solicitud</Text>
-      <Text style={styles.muted}>El profesional ya no está disponible o el enlace no es válido.</Text>
-      <AppButton label="Volver a Explorar" variant="secondary" onPress={() => router.replace('/(app)/explore' as never)} />
-    </View>
+      <Text style={styles.stateText}>El profesional ya no está disponible o el enlace no es válido.</Text>
+      <PillButton label="Volver a Explorar" variant="outline" onPress={() => router.replace('/(app)/explore' as never)} />
+    </Card>
   );
+}
+
+function localIsoDate(offsetDays: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
 }
 
 function RequestForm({ profile }: { profile: PublicWorkerProfile }) {
@@ -98,8 +143,19 @@ function RequestForm({ profile }: { profile: PublicWorkerProfile }) {
   const locatingRef = useRef(false);
   const submittingRef = useRef(false);
   const geocodeRequest = useRef(0);
+  const { width } = useWindowDimensions();
 
   const selectedService = profile.services.find((service) => service.service_id === selectedServiceId) ?? null;
+  const contentWidth = Math.max(0, Math.min(width, sizing.screenMaxWidth) - sizing.screenPadding * 2);
+  const tileWidth = Math.floor((contentWidth - TILE_GAP * 2) / 3);
+  const today = localIsoDate(0);
+  const tomorrow = localIsoDate(1);
+  const completedSteps = [
+    selectedService !== null,
+    description.trim().length > 0,
+    location !== null,
+    jobAreaLabel.trim().length > 0,
+  ].filter(Boolean).length;
 
   function clearError(key: string) {
     setErrors((current) => {
@@ -198,157 +254,316 @@ function RequestForm({ profile }: { profile: PublicWorkerProfile }) {
 
   if (phase === 'success' && createdId) {
     return (
-      <View style={styles.successCard}>
-        <View style={styles.successIcon}><AppIcon name="check" color={colors.success} size={sizing.iconLg} /></View>
-        <Text style={styles.stateTitle}>Solicitud enviada</Text>
-        <Text style={styles.muted}>El profesional ya puede verla. Su estado inicial es Pendiente.</Text>
-        <AppButton label="Ver solicitud" onPress={() => router.replace({ pathname: '/(app)/request/[requestId]', params: { requestId: createdId } } as never)} />
-        <AppButton label="Ir a Mis solicitudes" variant="secondary" onPress={() => router.replace('/(app)/requests' as never)} />
-      </View>
+      <RequestFrame footer={<MarketplaceNav active="explore" />}>
+        <Card style={styles.successCard}>
+          <View style={styles.successIcon}><Icon color={ui.green} name="check-circle" size={40} /></View>
+          <Text style={styles.stateTitle}>Solicitud enviada</Text>
+          <Text style={styles.stateText}>El profesional ya puede verla. Su estado inicial es Pendiente.</Text>
+          <PillButton chevron label="Ver solicitud" size="lg" style={styles.fullWidth} onPress={() => router.replace({ pathname: '/(app)/request/[requestId]', params: { requestId: createdId } } as never)} />
+          <PillButton label="Ir a Mis solicitudes" variant="outline" style={styles.fullWidth} onPress={() => router.replace('/(app)/requests' as never)} />
+        </Card>
+      </RequestFrame>
     );
   }
 
   if (phase === 'review' && validated && selectedService) {
     return (
-      <View style={styles.reviewStack}>
+      <RequestFrame
+        footer={(
+          <RequestFooter
+            actionLabel="Enviar solicitud"
+            budgetLabel={validated.budgetReferenceBob === null ? null : `Bs ${validated.budgetReferenceBob}`}
+            failure={failure}
+            loading={submitting}
+            onPress={() => void submit()}
+          />
+        )}
+        progress={REQUIRED_STEPS}
+      >
         <FeedbackMessage tone="info">Revisa los datos. Al enviar se creará una solicitud directa para este profesional.</FeedbackMessage>
-        <ReviewRow label="Profesional" value={profile.display_name} />
-        <ReviewRow label="Servicio" value={selectedService.title} />
-        <ReviewRow label="Detalle" value={validated.description} />
-        <ReviewRow label="Zona visible al profesional" value={validated.jobAreaLabel} />
-        <ReviewRow label="Ubicación exacta" value="Registrada de forma privada" />
-        {validated.addressText ? <ReviewRow label="Dirección privada" value={validated.addressText} /> : null}
-        <ReviewRow label="Fecha preferida" value={validated.preferredDate ?? 'Por acordar'} />
-        <ReviewRow label="Hora preferida" value={validated.preferredTime ?? 'Por acordar'} />
-        <ReviewRow label="Presupuesto de referencia" value={validated.budgetReferenceBob === null ? 'No indicado' : `Bs ${validated.budgetReferenceBob}`} />
-        {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}
-        <AppButton label="Enviar solicitud" icon="send" loading={submitting} onPress={() => void submit()} />
-        <AppButton label="Editar datos" variant="secondary" disabled={submitting} onPress={() => { setFailure(null); setPhase('form'); }} />
-      </View>
+        <Card style={styles.reviewCard}>
+          <ReviewRow first icon="account" label="Profesional" value={profile.display_name} />
+          <ReviewRow icon={categoryGlyph(selectedService.category_icon_key, selectedService.category_slug).name} label="Servicio" value={selectedService.title} />
+          <ReviewRow icon="text-box" label="Detalle" value={validated.description} />
+          <ReviewRow icon="map-marker" label="Zona visible al profesional" value={validated.jobAreaLabel} />
+          <ReviewRow icon="lock" label="Ubicación exacta" value="Registrada de forma privada" />
+          {validated.addressText ? <ReviewRow icon="home" label="Dirección privada" value={validated.addressText} /> : null}
+          <ReviewRow icon="calendar-blank" label="Fecha preferida" value={validated.preferredDate ?? 'Por acordar'} />
+          <ReviewRow icon="clock-time-four" label="Hora preferida" value={validated.preferredTime ?? 'Por acordar'} />
+          <ReviewRow icon="database" label="Presupuesto de referencia" value={validated.budgetReferenceBob === null ? 'No indicado' : `Bs ${validated.budgetReferenceBob}`} />
+        </Card>
+        <PillButton icon="pencil" label="Editar datos" variant="outline" disabled={submitting} onPress={() => { setFailure(null); setPhase('form'); }} />
+      </RequestFrame>
     );
   }
 
   return (
-    <>
-      <View style={styles.workerCard}>
-        <Text style={styles.overline}>PROFESIONAL SELECCIONADO</Text>
-        <Text style={styles.workerName}>{profile.display_name}</Text>
-        <Text style={styles.muted}>{profile.public_area_label}, {profile.city}</Text>
+    <RequestFrame
+      footer={(
+        <RequestFooter
+          actionLabel="Revisar solicitud"
+          budgetLabel={budgetText.trim() ? `Bs ${budgetText.trim()}` : null}
+          disabled={locating}
+          failure={failure}
+          onPress={review}
+        />
+      )}
+      progress={completedSteps}
+    >
+      <Card style={styles.workerCard}>
+        <Avatar badge={profile.is_verified ? 'verified' : undefined} name={profile.display_name} size={56} />
+        <View style={styles.workerCopy}>
+          <Text style={styles.overline}>Profesional seleccionado</Text>
+          <Text numberOfLines={2} style={styles.workerName}>{profile.display_name}</Text>
+          <View style={styles.inlineMeta}>
+            <Icon color={ui.muted} name="map-marker" size={16} />
+            <Text numberOfLines={1} style={styles.workerArea}>{profile.public_area_label}, {profile.city}</Text>
+          </View>
+        </View>
+      </Card>
+
+      <View style={styles.section}>
+        <SectionHeading title="1. Selecciona un servicio" />
+        <Text style={styles.help}>Elige uno de los servicios activos de este profesional.</Text>
+        <View accessibilityRole="radiogroup" style={styles.tiles}>
+          {profile.services.map((service) => (
+            <ServiceTile
+              key={service.service_id}
+              selected={service.service_id === selectedServiceId}
+              service={service}
+              width={tileWidth}
+              onPress={() => { setSelectedServiceId(service.service_id); clearError('service'); }}
+            />
+          ))}
+        </View>
+        {errors.service ? <Text accessibilityRole="alert" style={styles.error}>{errors.service}</Text> : null}
       </View>
 
-      <FormSection label="Servicio">
-        <Text style={styles.help}>Elige uno de los servicios activos de este profesional.</Text>
-        {profile.services.map((service) => {
-          const selected = service.service_id === selectedServiceId;
-          return (
-            <Pressable
-              key={service.service_id}
-              accessibilityRole="radio"
-              accessibilityState={{ selected }}
-              onPress={() => { setSelectedServiceId(service.service_id); clearError('service'); }}
-              style={({ pressed }) => [styles.serviceChoice, selected && styles.serviceSelected, pressed && styles.pressed]}
-            >
-              <View style={styles.serviceCopy}>
-                <Text style={styles.serviceTitle}>{service.title}</Text>
-                <Text style={styles.muted}>{service.category_name} · {formatMarketplacePrice(service.pricing_type, service.price_bob)}</Text>
-              </View>
-              {selected ? <AppIcon name="check" color={colors.primary} size={sizing.iconMd} /> : null}
-            </Pressable>
-          );
-        })}
-        {errors.service ? <Text accessibilityRole="alert" style={styles.error}>{errors.service}</Text> : null}
-      </FormSection>
-
-      <FormSection label="Trabajo">
-        <FormField
-          label="Descripción o detalles"
-          multiline
-          maxLength={2000}
-          value={description}
-          onChangeText={(value) => { setDescription(value); clearError('description'); }}
+      <View style={styles.section}>
+        <SectionHeading title="2. Describe lo que necesitas" />
+        <RequestField
+          counterMax={DESCRIPTION_MAX}
           error={errors.description}
           helperText="Explica qué necesitas. Máximo 2000 caracteres."
+          hideLabel
+          label="Descripción o detalles"
+          maxLength={DESCRIPTION_MAX}
+          multiline
           placeholder="Ej. Necesito revisar el tablero y dos enchufes."
+          value={description}
+          onChangeText={(value) => { setDescription(value); clearError('description'); }}
         />
-        <FormField
-          label="Fecha preferida (opcional)"
-          value={preferredDate}
-          onChangeText={(value) => { setPreferredDate(value); clearError('preferredDate'); }}
-          error={errors.preferredDate}
-          helperText="Formato AAAA-MM-DD. La coordinación definitiva llegará en módulos posteriores."
-          placeholder="2026-10-15"
-        />
-        <FormField
-          label="Hora preferida (opcional)"
-          value={preferredTime}
-          onChangeText={(value) => { setPreferredTime(value); clearError('preferredTime'); }}
-          error={errors.preferredTime}
-          helperText="Formato de 24 horas HH:MM."
-          placeholder="10:30"
-        />
-        <FormField
-          label="Presupuesto de referencia BOB (opcional)"
-          keyboardType="decimal-pad"
-          value={budgetText}
-          onChangeText={(value) => { setBudgetText(value); clearError('budget'); }}
-          error={errors.budget}
-          placeholder="350"
-        />
-      </FormSection>
+      </View>
 
-      <FormSection label="Lugar del trabajo">
+      <View style={styles.section}>
+        <SectionHeading title="3. ¿Dónde necesitas el servicio?" />
         <Text style={styles.help}>El profesional verá la zona general. Las coordenadas y la dirección exacta permanecen privadas antes de un booking.</Text>
-        <AppButton label="Usar mi ubicación actual" icon="location" variant="secondary" loading={locating} onPress={() => void selectCurrentLocation()} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: locating, busy: locating }}
+          disabled={locating}
+          onPress={() => void selectCurrentLocation()}
+          style={({ pressed }) => [styles.locationRow, pressed && styles.pressed]}
+        >
+          <Icon color={ui.accent} name="map-marker" size={30} />
+          <View style={styles.locationCopy}>
+            <Text style={styles.locationTitle}>Usar mi ubicación actual</Text>
+            <Text numberOfLines={1} style={styles.locationMeta}>{location ? (jobAreaLabel.trim() || 'Ubicación marcada') : 'O marca el lugar en el mapa'}</Text>
+          </View>
+          {locating ? <ActivityIndicator color={ui.accent} /> : <Icon color={ui.ink} name="chevron-right" size={26} />}
+        </Pressable>
         {notice ? <FeedbackMessage tone="info">{notice}</FeedbackMessage> : null}
         <RequestLocationPicker key={`${mapCoordinate.latitude}:${mapCoordinate.longitude}:${location !== null}`} coordinate={mapCoordinate} selected={location !== null} onChange={(next) => void chooseLocation(next)} />
         {errors.location ? <Text accessibilityRole="alert" style={styles.error}>{errors.location}</Text> : null}
-        <FormField
+        <RequestField
+          error={errors.jobAreaLabel}
           label="Zona o referencia"
           maxLength={160}
+          placeholder="Ej. Equipetrol Norte"
           value={jobAreaLabel}
           onChangeText={(value) => { setJobAreaLabel(value); clearError('jobAreaLabel'); }}
-          error={errors.jobAreaLabel}
-          placeholder="Ej. Equipetrol Norte"
         />
-        <FormField
-          label="Dirección exacta (opcional)"
-          maxLength={300}
-          value={addressText}
-          onChangeText={(value) => { setAddressText(value); clearError('addressText'); }}
+        <RequestField
           error={errors.addressText}
           helperText="Dato privado; no se muestra al worker antes de una contratación."
+          label="Dirección exacta (opcional)"
+          maxLength={300}
           placeholder="Calle, número o referencia privada"
+          value={addressText}
+          onChangeText={(value) => { setAddressText(value); clearError('addressText'); }}
         />
-      </FormSection>
-      {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}
-      <AppButton label="Revisar solicitud" icon="chevronRight" disabled={locating} onPress={review} />
-    </>
+      </View>
+
+      <View style={styles.section}>
+        <SectionHeading title="4. ¿Cuándo lo necesitas?" />
+        <View style={styles.chips}>
+          <DateChip label="Hoy" selected={preferredDate.trim() === today} onPress={() => { setPreferredDate(today); clearError('preferredDate'); }} />
+          <DateChip label="Mañana" selected={preferredDate.trim() === tomorrow} onPress={() => { setPreferredDate(tomorrow); clearError('preferredDate'); }} />
+        </View>
+        <RequestField
+          error={errors.preferredDate}
+          helperText="Formato AAAA-MM-DD. La coordinación definitiva llegará en módulos posteriores."
+          label="Fecha preferida (opcional)"
+          placeholder="2026-10-15"
+          value={preferredDate}
+          onChangeText={(value) => { setPreferredDate(value); clearError('preferredDate'); }}
+        />
+        <RequestField
+          error={errors.preferredTime}
+          helperText="Formato de 24 horas HH:MM."
+          label="Hora preferida (opcional)"
+          placeholder="10:30"
+          value={preferredTime}
+          onChangeText={(value) => { setPreferredTime(value); clearError('preferredTime'); }}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <SectionHeading title="5. Presupuesto de referencia" />
+        <RequestField
+          error={errors.budget}
+          helperText="Opcional. Es solo una referencia para el profesional."
+          keyboardType="decimal-pad"
+          label="Presupuesto de referencia BOB (opcional)"
+          placeholder="350"
+          value={budgetText}
+          onChangeText={(value) => { setBudgetText(value); clearError('budget'); }}
+        />
+      </View>
+    </RequestFrame>
   );
 }
 
-function ReviewRow({ label, value }: { label: string; value: string }) {
-  return <View style={styles.reviewRow}><Text style={styles.reviewLabel}>{label}</Text><Text style={styles.reviewValue}>{value}</Text></View>;
+function SectionHeading({ title }: { title: string }) {
+  return <Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>;
+}
+
+
+function ServiceTile({ service, selected, width, onPress }: { service: PublicWorkerService; selected: boolean; width: number; onPress: () => void }) {
+  const glyph = categoryGlyph(service.category_icon_key, service.category_slug);
+  const price = formatMarketplacePrice(service.pricing_type, service.price_bob);
+  return (
+    <Pressable
+      accessibilityLabel={`${service.title}. ${service.category_name} · ${price}`}
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [styles.tile, { width }, selected && styles.tileSelected, pressed && styles.pressed]}
+    >
+      {selected ? <View style={styles.tileCheck}><Icon color={ui.accent} name="check-circle" size={18} /></View> : null}
+      <Icon color={glyph.color} name={glyph.name} size={36} />
+      <Text numberOfLines={2} style={styles.tileTitle}>{service.title}</Text>
+      <Text numberOfLines={2} style={styles.tileMeta}>{price}</Text>
+    </Pressable>
+  );
+}
+
+function DateChip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityLabel={`Fecha preferida: ${label}`}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [styles.chip, selected && styles.chipSelected, pressed && styles.pressed]}
+    >
+      <Icon color={selected ? ui.accent : ui.ink} name="calendar-blank" size={22} />
+      <Text style={[styles.chipLabel, selected && styles.chipLabelSelected]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+/** Sticky bottom card: the user's own budget reference (never an estimate) and the primary action. */
+function RequestFooter({ actionLabel, budgetLabel, failure, loading = false, disabled = false, onPress }: {
+  actionLabel: string;
+  budgetLabel: string | null;
+  failure: string | null;
+  loading?: boolean;
+  disabled?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <View style={styles.footer}>
+      {failure ? <ErrorMessage>{failure}</ErrorMessage> : null}
+      <View style={styles.footerCard}>
+        <Icon color={ui.accent} name="database" size={28} />
+        <View style={styles.footerCopy}>
+          <Text style={styles.footerLabel}>Presupuesto estimado</Text>
+          <Text numberOfLines={1} style={[styles.footerValue, !budgetLabel && styles.footerValueEmpty]}>{budgetLabel ?? 'Sin indicar'}</Text>
+          <Text numberOfLines={1} style={styles.footerMeta}>{budgetLabel ? 'Monto que indicaste' : 'Opcional'}</Text>
+        </View>
+        <View style={styles.footerDivider} />
+        <PillButton chevron disabled={disabled} label={actionLabel} loading={loading} onPress={onPress} />
+      </View>
+      <View style={styles.footerNote}>
+        <Icon color={ui.muted} name="shield-check" size={18} />
+        <Text style={styles.footerNoteLabel}>Tu solicitud será visible solo para este profesional</Text>
+      </View>
+    </View>
+  );
+}
+
+function ReviewRow({ label, value, icon, first = false }: { label: string; value: string; icon: IconName; first?: boolean }) {
+  return (
+    <View style={[styles.reviewRow, !first && styles.reviewDivider]}>
+      <IconBubble name={icon} shape="square" size={36} variant="soft" />
+      <View style={styles.reviewCopy}>
+        <Text style={styles.reviewLabel}>{label}</Text>
+        <Text style={styles.reviewValue}>{value}</Text>
+      </View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.lg, paddingTop: spacing.xl },
-  stateCard: { minHeight: 220, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  stateTitle: { color: colors.navy, textAlign: 'center', ...typography.title },
-  workerCard: { gap: spacing.xs, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  overline: { color: colors.textSecondary, ...typography.overline },
-  workerName: { color: colors.navy, ...typography.title },
-  help: { color: colors.textSecondary, ...typography.caption },
-  muted: { color: colors.textSecondary, ...typography.body },
-  serviceChoice: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radii.lg, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
-  serviceSelected: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
-  serviceCopy: { flex: 1, gap: spacing.xs },
-  serviceTitle: { color: colors.text, ...typography.bodyStrong },
-  pressed: { opacity: 0.75 },
-  error: { color: colors.danger, ...typography.caption },
-  reviewStack: { gap: spacing.md },
-  reviewRow: { gap: spacing.xs, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.lg, backgroundColor: colors.surface },
-  reviewLabel: { color: colors.textSecondary, ...typography.caption },
-  reviewValue: { color: colors.text, ...typography.bodyStrong },
-  successCard: { minHeight: 360, gap: spacing.md, justifyContent: 'center', padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  successIcon: { width: 64, height: 64, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.successSoft },
+  screen: { gap: 22, paddingTop: 20 },
+  pressed: { opacity: 0.8 },
+  fullWidth: { alignSelf: 'stretch' },
+  stateCard: { minHeight: 220, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24 },
+  stateInner: { alignItems: 'center', gap: 12 },
+  stateTitle: { color: ui.ink, fontSize: 21, lineHeight: 27, fontWeight: '700', textAlign: 'center' },
+  stateText: { color: ui.muted, fontSize: 15, lineHeight: 21, textAlign: 'center' },
+  workerCard: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  workerCopy: { flex: 1, gap: 2 },
+  overline: { color: ui.muted, fontSize: 13, lineHeight: 17, fontWeight: '600' },
+  workerName: { color: ui.ink, fontSize: 18, lineHeight: 23, fontWeight: '700' },
+  inlineMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  workerArea: { flex: 1, color: ui.muted, fontSize: 14, lineHeight: 19 },
+  section: { gap: 12 },
+  sectionTitle: { color: ui.ink, fontSize: 19, lineHeight: 25, fontWeight: '700' },
+  help: { color: ui.muted, fontSize: 13, lineHeight: 18 },
+  error: { color: ui.danger, fontSize: 13, lineHeight: 18 },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: TILE_GAP },
+  tile: { minHeight: 118, alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 6, paddingVertical: 12, borderRadius: uiRadii.lg, borderWidth: 2, borderColor: ui.card, backgroundColor: ui.card, ...shadows.card },
+  tileSelected: { borderColor: ui.accent, backgroundColor: ui.accentTint },
+  tileCheck: { position: 'absolute', top: 6, right: 6 },
+  tileTitle: { color: ui.ink, fontSize: 13, lineHeight: 17, fontWeight: '600', textAlign: 'center' },
+  tileMeta: { color: ui.muted, fontSize: 11, lineHeight: 14, textAlign: 'center' },
+  locationRow: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderRadius: uiRadii.lg, backgroundColor: ui.card, ...shadows.card },
+  locationCopy: { flex: 1, gap: 2 },
+  locationTitle: { color: ui.ink, fontSize: 16, lineHeight: 21, fontWeight: '600' },
+  locationMeta: { color: ui.muted, fontSize: 13, lineHeight: 18 },
+  chips: { flexDirection: 'row', gap: 10 },
+  chip: { flex: 1, minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 12, borderRadius: uiRadii.lg, borderWidth: 2, borderColor: ui.card, backgroundColor: ui.card, ...shadows.card },
+  chipSelected: { borderColor: ui.accent, backgroundColor: ui.accentTint },
+  chipLabel: { color: ui.ink, fontSize: 16, lineHeight: 21, fontWeight: '500' },
+  chipLabelSelected: { color: ui.accent, fontWeight: '700' },
+  reviewCard: { paddingVertical: 4 },
+  reviewRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 12 },
+  reviewDivider: { borderTopWidth: 1, borderTopColor: ui.divider },
+  reviewCopy: { flex: 1, gap: 2 },
+  reviewLabel: { color: ui.muted, fontSize: 13, lineHeight: 17 },
+  reviewValue: { color: ui.ink, fontSize: 15, lineHeight: 21, fontWeight: '600' },
+  successCard: { minHeight: 360, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24 },
+  successIcon: { width: 72, height: 72, alignItems: 'center', justifyContent: 'center', borderRadius: 36, backgroundColor: ui.greenSoft },
+  footer: { gap: 10, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 10, borderTopLeftRadius: uiRadii.xl, borderTopRightRadius: uiRadii.xl, backgroundColor: ui.card, ...shadows.nav },
+  footerCard: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: uiRadii.xl, backgroundColor: ui.accentTint },
+  footerCopy: { flex: 1, minWidth: 0 },
+  footerLabel: { color: ui.muted, fontSize: 12, lineHeight: 16 },
+  footerValue: { color: ui.ink, fontSize: 20, lineHeight: 26, fontWeight: '800' },
+  footerValueEmpty: { color: ui.inkSoft, fontSize: 15, lineHeight: 22, fontWeight: '700' },
+  footerMeta: { color: ui.muted, fontSize: 12, lineHeight: 16 },
+  footerDivider: { width: 1, alignSelf: 'stretch', backgroundColor: ui.divider },
+  footerNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  footerNoteLabel: { flexShrink: 1, color: ui.muted, fontSize: 12, lineHeight: 16, textAlign: 'center' },
 });

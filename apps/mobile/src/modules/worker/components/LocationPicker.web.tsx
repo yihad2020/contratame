@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { FormField } from '@/components/ui/FormField';
-import { colors, radii, spacing, typography } from '@/constants/theme';
+import { ui, uiRadii } from '@/constants/theme';
 import type { LocationPickerProps } from '@/modules/worker/components/LocationPicker.types';
 
 export function LocationPicker({ coordinate, onChange }: LocationPickerProps) {
@@ -20,7 +20,7 @@ export function LocationPicker({ coordinate, onChange }: LocationPickerProps) {
 }
 
 const styles = StyleSheet.create({
-  fallback: { gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surfaceMuted, borderRadius: radii.lg },
-  title: { color: colors.text, ...typography.bodyStrong },
-  help: { color: colors.textSecondary, ...typography.caption },
+  fallback: { gap: 12, padding: 16, backgroundColor: ui.field, borderRadius: uiRadii.lg },
+  title: { color: ui.ink, fontSize: 16, lineHeight: 21, fontWeight: '700' },
+  help: { color: ui.muted, fontSize: 13, lineHeight: 18 },
 });

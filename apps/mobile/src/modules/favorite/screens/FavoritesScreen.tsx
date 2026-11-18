@@ -2,13 +2,15 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AppButton } from '@/components/ui/AppButton';
-import { AppIcon } from '@/components/ui/AppIcon';
+import { Avatar } from '@/components/ui/Avatar';
+import { Icon } from '@/components/ui/Icon';
+import { Card, IconBubble } from '@/components/ui/Kit';
 import { MarketplaceHeader } from '@/components/ui/MarketplaceHeader';
 import { MarketplaceNav } from '@/components/ui/MarketplaceNav';
+import { PillButton } from '@/components/ui/PillButton';
 import { Screen } from '@/components/ui/Screen';
 import { ErrorMessage, FeedbackMessage } from '@/components/ui/Typography';
-import { colors, radii, sizing, spacing, typography } from '@/constants/theme';
+import { ui, uiRadii } from '@/constants/theme';
 import { favoriteFailureMessage } from '@/modules/favorite/favorite-errors';
 import {
   mergeFavoritePages,
@@ -97,24 +99,26 @@ export function FavoritesScreen() {
     >
       {notice ? <FeedbackMessage tone={notice.includes('eliminó') ? 'success' : 'info'}>{notice}</FeedbackMessage> : null}
       {loading ? (
-        <View accessibilityRole="progressbar" style={styles.state}>
-          <ActivityIndicator color={colors.primary} />
-          <Text style={styles.muted}>Cargando tus favoritos…</Text>
-        </View>
+        <Card style={styles.stateCard}>
+          <View accessibilityRole="progressbar" style={styles.state}>
+            <ActivityIndicator color={ui.accent} />
+            <Text style={[styles.muted, styles.center]}>Cargando tus favoritos…</Text>
+          </View>
+        </Card>
       ) : null}
       {!loading && failure ? (
-        <View style={styles.state}>
+        <Card style={styles.stateCard}>
           <ErrorMessage>{failure}</ErrorMessage>
-          <AppButton label="Reintentar" onPress={() => void loadFirstPage()} />
-        </View>
+          <PillButton label="Reintentar" icon="refresh" onPress={() => void loadFirstPage()} />
+        </Card>
       ) : null}
       {!loading && !failure && items.length === 0 ? (
-        <View style={styles.empty}>
-          <View style={styles.emptyIcon}><AppIcon name="heart" size={sizing.iconLg} /></View>
+        <Card style={styles.empty}>
+          <View style={styles.emptyIcon}><IconBubble name="heart" variant="soft" size={68} /></View>
           <Text style={styles.emptyTitle}>Aún no guardaste profesionales</Text>
-          <Text style={styles.muted}>Abre un perfil público y toca “Agregar a favoritos”.</Text>
-          <AppButton label="Explorar profesionales" onPress={() => router.replace('/(app)/explore' as never)} />
-        </View>
+          <Text style={[styles.muted, styles.center]}>Abre un perfil público y toca “Agregar a favoritos”.</Text>
+          <PillButton label="Explorar profesionales" icon="magnify" onPress={() => router.replace('/(app)/explore' as never)} />
+        </Card>
       ) : null}
       {!failure ? items.map((item) => (
         <FavoriteCard
@@ -125,7 +129,7 @@ export function FavoritesScreen() {
           onRemove={() => void remove(item)}
         />
       )) : null}
-      {hasMore && !failure ? <AppButton label="Cargar más" variant="secondary" loading={loadingMore} onPress={() => void loadMore()} /> : null}
+      {hasMore && !failure ? <PillButton label="Cargar más" variant="outline" loading={loadingMore} onPress={() => void loadMore()} /> : null}
     </Screen>
   );
 }
@@ -138,47 +142,64 @@ function FavoriteCard({ item, removing, onOpen, onRemove }: {
 }) {
   if (!item.available) {
     return (
-      <View style={styles.card}>
+      <Card style={styles.card}>
         <View style={styles.row}>
-          <View style={styles.cardIcon}><AppIcon name="briefcase" color={colors.textSecondary} /></View>
+          <IconBubble name="account-off" variant="grey" color={ui.muted} size={56} />
           <View style={styles.copy}>
             <Text style={styles.cardTitle}>Profesional no disponible</Text>
             <Text style={styles.muted}>El perfil dejó de ser público. No mostramos información privada.</Text>
           </View>
         </View>
-        <AppButton icon="trash" label="Quitar de favoritos" variant="ghost" loading={removing} onPress={onRemove} />
-      </View>
+        <PillButton icon="heart-off" label="Quitar de favoritos" size="sm" variant="outline" loading={removing} onPress={onRemove} />
+      </Card>
     );
   }
 
   return (
-    <View style={styles.card}>
+    <Card style={styles.card}>
       <Pressable accessibilityRole="button" onPress={onOpen} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
-        <View style={styles.cardIcon}><AppIcon name="heart" color={colors.primary} /></View>
+        <Avatar name={item.display_name} size={60} />
         <View style={styles.copy}>
           <Text style={styles.cardTitle}>{item.display_name}</Text>
           {item.category_name || item.service_title ? <Text style={styles.category}>{item.category_name ?? item.service_title}</Text> : null}
-          <Text style={styles.muted}>{item.public_area_label}, {item.city}</Text>
+          <View style={styles.metaRow}>
+            <Icon color={ui.muted} name="map-marker" size={18} />
+            <Text style={[styles.muted, styles.flex]}>{item.public_area_label}, {item.city}</Text>
+          </View>
         </View>
-        <AppIcon name="chevronRight" color={colors.textSecondary} size={sizing.iconSm} />
+        <Icon name="chevron-right" color={ui.accent} size={26} />
       </Pressable>
-      <AppButton icon="trash" label="Quitar de favoritos" variant="ghost" loading={removing} onPress={onRemove} />
-    </View>
+      <View style={styles.divider} />
+      <View style={styles.footerRow}>
+        <View style={styles.savedTag}>
+          <Icon color={ui.accent} name="heart" size={18} />
+          <Text style={styles.savedLabel}>Guardado</Text>
+        </View>
+        <PillButton icon="heart-off" label="Quitar de favoritos" size="sm" variant="outline" loading={removing} onPress={onRemove} />
+      </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.md, paddingTop: spacing.xl },
-  state: { minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
-  empty: { minHeight: 280, justifyContent: 'center', gap: spacing.md, padding: spacing.xl, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  emptyIcon: { width: 58, height: 58, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft },
-  emptyTitle: { color: colors.navy, textAlign: 'center', ...typography.title },
-  muted: { color: colors.textSecondary, ...typography.body },
-  card: { gap: spacing.sm, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, borderRadius: radii.xl, backgroundColor: colors.surface },
-  row: { minHeight: sizing.touchTarget, flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: radii.md },
-  pressed: { opacity: 0.72 },
-  cardIcon: { width: sizing.touchTarget, height: sizing.touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: radii.pill, backgroundColor: colors.primarySoft },
-  copy: { flex: 1, gap: spacing.xs },
-  cardTitle: { color: colors.text, ...typography.bodyStrong },
-  category: { color: colors.primary, ...typography.label },
+  screen: { gap: 14, paddingTop: 20 },
+  flex: { flex: 1 },
+  center: { textAlign: 'center' },
+  stateCard: { minHeight: 240, justifyContent: 'center', gap: 14 },
+  state: { alignItems: 'center', justifyContent: 'center', gap: 12 },
+  empty: { minHeight: 280, justifyContent: 'center', gap: 12, padding: 24 },
+  emptyIcon: { alignSelf: 'center' },
+  emptyTitle: { color: ui.ink, textAlign: 'center', fontSize: 19, lineHeight: 25, fontWeight: '700' },
+  muted: { color: ui.muted, fontSize: 14, lineHeight: 20 },
+  card: { gap: 12 },
+  row: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: uiRadii.md },
+  pressed: { opacity: 0.75 },
+  copy: { flex: 1, gap: 3 },
+  cardTitle: { color: ui.ink, fontSize: 18, lineHeight: 24, fontWeight: '700' },
+  category: { color: ui.inkSoft, fontSize: 15, lineHeight: 20, fontWeight: '500' },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  divider: { height: 1, backgroundColor: ui.divider },
+  footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' },
+  savedTag: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: uiRadii.pill, backgroundColor: ui.accentSoft },
+  savedLabel: { color: ui.accent, fontSize: 13, lineHeight: 18, fontWeight: '600' },
 });
